@@ -1,0 +1,2 @@
+# piperika
+JFrog CLI Plugin
