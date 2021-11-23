@@ -6,13 +6,13 @@ import (
 )
 
 const (
-	stepsUrl = "steps"
+	stepsUrl = "/steps"
 )
 
 type GetStepsOptions struct {
-	PipelineIds string     `url:"pipelineIds"`
-	StatusCode  StatusCode `url:"statusCode"`
-	Limit       int        `url:"limit"`
+	PipelineIds string     `url:"pipelineIds,omitempty"`
+	StatusCode  StatusCode `url:"statusCode,omitempty"`
+	Limit       int        `url:"limit,omitempty"`
 }
 
 type GetStepsResponse struct {

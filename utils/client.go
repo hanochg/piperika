@@ -8,10 +8,13 @@ import (
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
 	"github.com/jfrog/jfrog-client-go/http/jfroghttpclient"
 	"github.com/jfrog/jfrog-client-go/utils/io/httputils"
+	"strings"
 )
 
 const (
-	pipelineUrlPath = "/pipelines/api/v1"
+	artifactoryUrlPart = "artifactory"
+	pipelineUrlPart    = "pipelines"
+	apiV1              = "/api/v1"
 )
 
 type ClientOptions struct {
@@ -36,15 +39,38 @@ func NewPipelineHttp(c *components.Context) (*pipelineHttpClient, error) {
 		return nil, err
 	}
 
+	url, err := getPipelineUrlFromBaseUrl(details.ArtifactoryUrl)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pipelineHttpClient{
 		client:  manager.Client(),
 		details: config.CreateHttpClientDetails(),
-		baseUrl: getPipelineUrlFromBaseUrl(details.Url),
+		baseUrl: url,
 	}, nil
 }
 
-func getPipelineUrlFromBaseUrl(url string) string {
-	return url + pipelineUrlPath
+func getPipelineUrlFromBaseUrl(artifactoryUrl string) (string, error) {
+	urlParts := strings.Split(artifactoryUrl, "/")
+	if len(urlParts) <= 1 {
+		return "", fmt.Errorf("unexpected artifactory URL '%s'", artifactoryUrl)
+	}
+	urlParts = removeTrailingSlash(urlParts)
+	if urlParts[len(urlParts)-1] != artifactoryUrlPart {
+		return "", fmt.Errorf("unexpected artifactory URL %s that doesn't ends with %s", artifactoryUrl, artifactoryUrlPart)
+	}
+	urlParts[len(urlParts)-1] = pipelineUrlPart
+
+	urlWithoutArtifactory := strings.Join(urlParts, "/")
+	return urlWithoutArtifactory + apiV1, nil
+}
+
+func removeTrailingSlash(urlParts []string) []string {
+	if urlParts[len(urlParts)-1] == "" {
+		urlParts = urlParts[:len(urlParts)-1]
+	}
+	return urlParts
 }
 
 type pipelineHttpClient struct {
@@ -63,7 +89,7 @@ func (s *pipelineHttpClient) SendGet(endpoint string, options ClientOptions) ([]
 		return nil, err
 	}
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return nil, fmt.Errorf("unexpected response; status code: %d, message: %s", res.StatusCode, resBody)
+		return nil, fmt.Errorf("unexpected response; status code: %d, from: %s, message: %s", res.StatusCode, url, resBody)
 	}
 	return resBody, nil
 }
@@ -71,11 +97,11 @@ func (s *pipelineHttpClient) SendGet(endpoint string, options ClientOptions) ([]
 func getUrlWithQuery(baseUrl string, options ClientOptions) (string, error) {
 	url := baseUrl
 	if options.Query != nil {
-		values, err := query.Values(options)
+		values, err := query.Values(options.Query)
 		if err != nil {
 			return "", err
 		}
-		url += values.Encode()
+		url += "?" + values.Encode()
 	}
 	return url, nil
 }
