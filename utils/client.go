@@ -39,7 +39,7 @@ func NewPipelineHttp(c *components.Context) (*pipelineHttpClient, error) {
 		return nil, err
 	}
 
-	url, err := getPipelineUrlFromBaseUrl(details.ArtifactoryUrl)
+	url, err := getPipelineUrlFromArtifactoryUrl(details.ArtifactoryUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func NewPipelineHttp(c *components.Context) (*pipelineHttpClient, error) {
 	}, nil
 }
 
-func getPipelineUrlFromBaseUrl(artifactoryUrl string) (string, error) {
+func getPipelineUrlFromArtifactoryUrl(artifactoryUrl string) (string, error) {
 	urlParts := strings.Split(artifactoryUrl, "/")
 	if len(urlParts) <= 1 {
 		return "", fmt.Errorf("unexpected artifactory URL '%s'", artifactoryUrl)
