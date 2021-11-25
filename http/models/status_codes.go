@@ -1,8 +1,4 @@
-package steps
-
-type Step struct {
-	Name string `json:"name"`
-}
+package models
 
 type StatusCode int
 

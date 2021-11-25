@@ -9,7 +9,7 @@ func GetCommand() components.Command {
 	return components.Command{
 		Name:        "pipelines",
 		Description: "pipelines operations",
-		Aliases:     []string{"pl"},
+		Aliases:     []string{"pp"},
 		Arguments:   getArguments(),
 		Flags:       getFlags(),
 		Action:      action,

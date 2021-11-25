@@ -1,4 +1,4 @@
-package utils
+package http
 
 import (
 	"fmt"
@@ -23,6 +23,7 @@ type ClientOptions struct {
 
 type PipelineHttpClient interface {
 	SendGet(endpoint string, options ClientOptions) ([]byte, error)
+	SendPost(endpoint string, options ClientOptions, content []byte) ([]byte, error)
 }
 
 func NewPipelineHttp(c *components.Context) (*pipelineHttpClient, error) {
@@ -77,6 +78,21 @@ type pipelineHttpClient struct {
 	client  *jfroghttpclient.JfrogHttpClient
 	details httputils.HttpClientDetails
 	baseUrl string
+}
+
+func (s *pipelineHttpClient) SendPost(endpoint string, options ClientOptions, content []byte) ([]byte, error) {
+	url, err := getUrlWithQuery(s.baseUrl+endpoint, options)
+	if err != nil {
+		return nil, err
+	}
+	res, resBody, err := s.client.SendPost(url, content, &s.details)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected response; status code: %d, from: %s, message: %s", res.StatusCode, url, resBody)
+	}
+	return resBody, nil
 }
 
 func (s *pipelineHttpClient) SendGet(endpoint string, options ClientOptions) ([]byte, error) {
