@@ -23,8 +23,8 @@ vet:				## GoVet
 clean:				## Clean from created bins
 	rm -f ./build/*
 
-run:				## Run the plugin
-	$(GOCMD) run main.go
+run:				## Run the plugin (example: ARGS="pp everything" make run)
+	$(GOCMD) run main.go $(ARGS)
 
 
 # TEST EXECUTION
