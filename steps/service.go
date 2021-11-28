@@ -38,10 +38,10 @@ func GetPipelinesForBranch(client http.PipelineHttpClient, branch string) (*mode
 	return res, nil
 }
 
-func GetSyncStatusForBranch(client http.PipelineHttpClient, branch string) (*models.SyncStatusResponse, error) {
+func GetSyncStatusForBranch(client http.PipelineHttpClient, pipelinesSourceId int, branchName string) (*models.SyncStatusResponse, error) {
 	res, err := requests.GetSyncStatus(client, models.SyncOptions{
-		PipelineSourceId:       6,
-		PipelineSourceBranches: "ja-2446", //should be branch
+		PipelineSourceId:       pipelinesSourceId,
+		PipelineSourceBranches: branchName, //should be branch
 	})
 	if err != nil {
 		return nil, err
@@ -51,8 +51,21 @@ func GetSyncStatusForBranch(client http.PipelineHttpClient, branch string) (*mod
 }
 
 func GetSourcesById(client http.PipelineHttpClient, id string) (*models.SourcesResponse, error) {
-	res, err := requests.GetSource(client, models.SourcesOptions{
+	res, err := requests.GetSource(client, models.GetSourcesOptions{
 		PipelineSourceIds: id, // should be 'id'
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func SyncSources(client http.PipelineHttpClient, pipelinesSourceId int, branchName string) (*models.SourcesResponse, error) {
+	res, err := requests.SyncSource(client, models.SyncSourcesOptions{
+		Branch:           branchName,
+		ShouldSync:       true,
+		PipelineSourceId: pipelinesSourceId,
 	})
 	if err != nil {
 		return nil, err

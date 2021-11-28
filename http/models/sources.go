@@ -1,10 +1,16 @@
 package models
 
-type SourcesOptions struct {
+type GetSourcesOptions struct {
 	PipelineSourceIds string `url:"pipelineSourceIds,omitempty"` // Can be a csv list
 }
 
-type Sources struct {
+type SyncSourcesOptions struct {
+	Branch           string `url:"branch,omitempty"`
+	ShouldSync       bool   `url:"sync,omitempty"`
+	PipelineSourceId int
+}
+
+type Source struct {
 	Id                 int        `json:"id"`
 	RepositoryFullName string     `json:"repositoryFullName"`
 	LastSyncStatusCode StatusCode `json:"lastSyncStatusCode"`
@@ -16,5 +22,5 @@ type Sources struct {
 }
 
 type SourcesResponse struct {
-	Sources []Sources
+	Sources []Source
 }

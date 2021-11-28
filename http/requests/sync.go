@@ -16,6 +16,6 @@ func GetSyncStatus(client http.PipelineHttpClient, options models.SyncOptions) (
 		return nil, err
 	}
 	res := &models.SyncStatusResponse{}
-	err = json.Unmarshal(body, res.SyncStatuses)
+	err = json.Unmarshal(body, &res.SyncStatuses)
 	return res, err
 }
