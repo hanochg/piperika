@@ -27,11 +27,5 @@ func getFlags() []components.Flag {
 }
 
 func action(c *components.Context) error {
-	switch c.Arguments[0] { // Consider use strategy / map instead
-	case "get":
-		return getCommand(c)
-	case "everything":
-		return everythingCommand(c)
-	}
-	return nil
+	return theCommand(c)
 }

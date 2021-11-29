@@ -2,15 +2,14 @@ package runner
 
 import (
 	"context"
-	"github.com/hanochg/piperika/runner/command"
 )
 
-func RunPipe(ctx context.Context, pipe ...command.PipedCommand) error {
-	pipedState := &command.PipedCommandState{}
-	for _, cmd := range pipe {
-		res := cmd.Run(ctx, pipedState)
-		if res.Error != nil {
-			return res.Error
+func RunPipe(ctx context.Context) error {
+	pipedState := &pipedCommandState{}
+	for _, cmd := range registry {
+		err := cmd.Run(ctx, pipedState)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
