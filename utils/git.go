@@ -44,6 +44,23 @@ func GetLocalBranches() ([]string, error) {
 	return res, nil
 }
 
+func GetCommitHash(branch string, remote bool) (string, error) {
+	repository, err := getLocalRepo()
+	if err != nil {
+		return "", err
+	}
+
+	revision := branch
+	if remote {
+		revision = "refs/remotes/origin/" + revision
+	}
+	resolvedRev, err := repository.ResolveRevision(plumbing.Revision(revision))
+	if resolvedRev.IsZero() {
+		return "", fmt.Errorf("requested revision %s does not exist in the remote git", revision)
+	}
+	return resolvedRev.String(), nil
+}
+
 func getLocalRepo() (*git.Repository, error) {
 	wd, err := os.Getwd()
 	if err != nil {

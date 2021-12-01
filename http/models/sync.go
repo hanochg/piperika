@@ -3,6 +3,7 @@ package models
 type SyncOptions struct {
 	PipelineSourceBranches string `url:"pipelineSourceBranches,omitempty"` // Can be a csv list
 	PipelineSourceId       int    `url:"pipelineSourceId,omitempty"`
+	Light                  bool   `url:"light,omitempty"`
 }
 
 type SyncStatus struct {
@@ -15,6 +16,7 @@ type SyncStatus struct {
 	LastSyncEndedAt      string     `json:"lastSyncEndedAt"`
 	LastSyncLogs         string     `json:"lastSyncLogs"`
 	SyncUpdatedAt        string     `json:"updatedAt"`
+	ResourceVersionId    int        `json:"triggeredByResourceVersionId"`
 }
 
 type SyncStatusResponse struct {
