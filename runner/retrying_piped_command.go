@@ -11,7 +11,7 @@ import (
 type runner interface {
 	init(ctx context.Context, state *pipedCommandState) (string, error)
 	tick(ctx context.Context, state *pipedCommandState) (*tickStatus, error)
-	timedOutOperation(ctx context.Context, state *pipedCommandState) (string, error)
+	timedOutOperation(ctx context.Context, state *pipedCommandState, status *tickStatus) (string, error)
 }
 
 type runnerConfig struct {
@@ -38,7 +38,7 @@ func (c *waitedPipedCommand) Run(ctx context.Context, state *pipedCommandState) 
 	backoffConfig := backoff.WithMaxRetries(backoff.NewConstantBackOff(c.interval), uint64(maxRetries))
 	failBackoff := backoff.WithMaxRetries(backoff.NewConstantBackOff(c.interval), uint64(maxRetries))
 
-	err := c.ticker(ctx, state, backoffConfig, failBackoff)
+	lastStatus, err := c.ticker(ctx, state, backoffConfig, failBackoff)
 	if err != nil {
 		if !errors.As(err, &timeOutError{}) {
 			return err
@@ -46,20 +46,20 @@ func (c *waitedPipedCommand) Run(ctx context.Context, state *pipedCommandState) 
 		fmt.Printf("%s: timed-out\n", c.operationName)
 	}
 
-	message, err := c.timedOutOperation(ctx, state)
+	message, err := c.timedOutOperation(ctx, state, lastStatus)
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("%s: %s\n", c.operationName, message)
 
-	err = c.ticker(ctx, state, backoffConfig, failBackoff)
+	_, err = c.ticker(ctx, state, backoffConfig, failBackoff)
 	return err
 }
 
-func (c *waitedPipedCommand) ticker(ctx context.Context, state *pipedCommandState, backoffConfig backoff.BackOff, failBackoff backoff.BackOff) error {
+func (c *waitedPipedCommand) ticker(ctx context.Context, state *pipedCommandState, backoffConfig backoff.BackOff, failBackoff backoff.BackOff) (*tickStatus, error) {
+	var currentStatus *tickStatus
 	for currInterval := backoffConfig.NextBackOff(); currInterval > 0; currInterval = backoffConfig.NextBackOff() {
-		var currentStatus *tickStatus
 		err := backoff.RetryNotify(func() (err error) {
 			currentStatus, err = c.tick(ctx, state)
 			return
@@ -67,17 +67,17 @@ func (c *waitedPipedCommand) ticker(ctx context.Context, state *pipedCommandStat
 			// TODO error handling
 		})
 		if err != nil {
-			return err
+			return currentStatus, err
 		}
 
 		// TODO Handle terminal using status
 		fmt.Printf("%s: %s - %s\n", c.operationName, currentStatus.status, currentStatus.message)
 
 		if currentStatus.done {
-			return nil
+			return currentStatus, nil
 		}
 	}
-	return fmt.Errorf("timed-out %w", timeOutError{})
+	return currentStatus, fmt.Errorf("timed-out %w", timeOutError{})
 }
 
 type timeOutError struct {

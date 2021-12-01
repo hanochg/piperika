@@ -32,7 +32,7 @@ func (_ _01) tick(ctx context.Context, state *pipedCommandState) (*tickStatus, e
 	return nil, nil
 }
 
-func (_ _01) timedOutOperation(ctx context.Context, state *pipedCommandState) (string, error) {
+func (_ _01) timedOutOperation(ctx context.Context, state *pipedCommandState, status *tickStatus) (string, error) {
 	// TODO if not exists, fetch by branch
 	// client := ctx.Value("client").(http.PipelineHttpClient) // Getting a client, consider use helper for ease or dedicated ctx
 	return "", nil
