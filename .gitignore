@@ -18,4 +18,4 @@
 .idea
 
 # Builds folder
-build/
+bin/
