@@ -7,6 +7,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+func New001ValidateGitState() *_001 {
+	return &_001{}
+}
+
 type _001 struct{}
 
 func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) (Status, error) {

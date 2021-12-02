@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cenkalti/backoff"
-	"github.com/hanochg/piperika/runner/commands"
+	"github.com/hanochg/piperika/runner/command"
 	"time"
 )
 
@@ -51,13 +51,16 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 }
 
 func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *command.PipedCommandState) error {
-	return backoff.Retry(
+	return backoff.RetryNotify(
 		func() error {
 			_, err := c.ResolveState(ctx, state)
 			// TODO: print status line / error
 			return err
 		},
 		c.newBackoffContext(ctx),
+		func(err error, duration time.Duration) {
+			println(fmt.Sprintf("######### %v", err.Error()))
+		},
 	)
 }
 

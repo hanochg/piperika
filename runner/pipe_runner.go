@@ -2,7 +2,7 @@ package runner
 
 import (
 	"context"
-	"github.com/hanochg/piperika/runner/commands"
+	"github.com/hanochg/piperika/runner/command"
 	"time"
 )
 
@@ -10,10 +10,11 @@ var (
 	defaultBackoffConfig = backoffConfig{interval: time.Second, maxRetries: 30}
 
 	cmds = []PipedCommand{
-		NewRetryingPipedCommand("fetch branch", command.New001GetPipeSourceBranch(), defaultBackoffConfig),
-		NewRetryingPipedCommand("sync", command.New002WaitPipSourceCompletion(), defaultBackoffConfig),
-		NewRetryingPipedCommand("create or grab current run", command.New003GetRun(), defaultBackoffConfig),
-		NewRetryingPipedCommand("follow run", command.New004WaitForRun(), defaultBackoffConfig),
+		NewRetryingPipedCommand("validate git state", command.New001ValidateGitState(), defaultBackoffConfig),
+		NewRetryingPipedCommand("sync pipelines sources", command.New002PipelinesSourcesBranchSync(), defaultBackoffConfig),
+		NewRetryingPipedCommand("find or trigger active run", command.New003PipelinesFindRun(), defaultBackoffConfig),
+		NewRetryingPipedCommand("wait for run to finish", command.New004PipelinesWaitRun(), defaultBackoffConfig),
+		NewRetryingPipedCommand("print run results", command.New005PipelinesPrintRun(), defaultBackoffConfig),
 	}
 )
 
