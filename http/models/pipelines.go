@@ -1,10 +1,11 @@
 package models
 
-type PipelinesLookupOptions struct {
-	SortBy   string `url:"sortBy,omitempty"`
-	FilterBy string `url:"filterBy,omitempty"`
-	Light    bool   `url:"light,omitempty"`
-	Limit    int    `url:"limit,omitempty"`
+type GetPipelinesOptions struct {
+	SortBy     string `url:"sortBy,omitempty"`
+	FilterBy   string `url:"filterBy,omitempty"`
+	Light      bool   `url:"light,omitempty"`
+	Limit      int    `url:"limit,omitempty"`
+	PipesNames string `url:"names,omitempty"`
 }
 
 type Pipeline struct {

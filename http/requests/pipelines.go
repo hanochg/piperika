@@ -10,7 +10,7 @@ const (
 	pipelinesLookupUrl = "/pipelines"
 )
 
-func GetPipelines(client http.PipelineHttpClient, options models.PipelinesLookupOptions) (*models.PipelinesLookupResponse, error) {
+func GetPipelines(client http.PipelineHttpClient, options models.GetPipelinesOptions) (*models.PipelinesLookupResponse, error) {
 	body, err := client.SendGet(pipelinesLookupUrl, http.ClientOptions{Query: options})
 	if err != nil {
 		return nil, err

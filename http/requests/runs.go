@@ -13,7 +13,7 @@ const (
 )
 
 func GetRuns(client http.PipelineHttpClient, options models.GetRunsOptions) (*models.RunsResponse, error) {
-	body, err := client.SendGet(stepsUrl, http.ClientOptions{Query: options})
+	body, err := client.SendGet(runsUrl, http.ClientOptions{Query: options})
 	if err != nil {
 		return nil, err
 	}

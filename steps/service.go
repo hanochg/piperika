@@ -9,8 +9,8 @@ import (
 func GetRunningStepsForBranch(client http.PipelineHttpClient, branch string) ([]string, error) {
 	// TODO fetch pipeline and last run based on branch using other services
 	body, err := GetSteps(client, GetStepsOptions{
-		StatusCode:        InProgress, // TODO parameter
-		Limit:             2,          // TODO const
+		StatusCode:        models.Processing, // TODO parameter
+		Limit:             2,                 // TODO const
 		PipelineSourceIds: "6",
 	})
 	if err != nil {
@@ -25,7 +25,7 @@ func GetRunningStepsForBranch(client http.PipelineHttpClient, branch string) ([]
 }
 
 func GetPipelinesForBranch(client http.PipelineHttpClient, branch string) (*models.PipelinesLookupResponse, error) {
-	res, err := requests.GetPipelines(client, models.PipelinesLookupOptions{
+	res, err := requests.GetPipelines(client, models.GetPipelinesOptions{
 		SortBy:   "latestRunId",
 		FilterBy: "ja-2446", //should be branch
 		Light:    true,

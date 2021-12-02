@@ -4,11 +4,11 @@ type StatusCode int
 
 const (
 	Queued     StatusCode = 4000
-	InProgress StatusCode = 4001
+	Processing StatusCode = 4001
 	Success    StatusCode = 4002
 	Failure    StatusCode = 4003
 	Error      StatusCode = 4004
-	Wait       StatusCode = 4005
+	Waiting    StatusCode = 4005
 	Canceled   StatusCode = 4006
 	Unstable   StatusCode = 4007
 	Skipped    StatusCode = 4008
