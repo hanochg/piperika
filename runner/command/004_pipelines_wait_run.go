@@ -19,8 +19,13 @@ type _004 struct{}
 
 func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) (Status, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+	// TODO - as the run steps don't change, there's no need ot get them in each cycle
+	// we need to separate GetSteps from the GetRuns cycle
 	stepsResp, err := requests.GetSteps(httpClient, models.GetStepsOptions{
 		// TODO: shouldn't this also have run number? otherwise it's the steps of the last run and not the intended run
+		// Hanoch: run id is points to a specific run number in a specific pipeline (e.g access_build under RT repo),
+		// each run gets a run id, I added the run number just for printing it to the console (as it's user friendly)
+		//
 		RunIds: strconv.Itoa(state.RunId),
 		Limit:  100,
 	})
