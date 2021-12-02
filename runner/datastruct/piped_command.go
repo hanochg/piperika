@@ -16,7 +16,6 @@ type PipedCommandState struct {
 
 	// pipelines details
 	PipelinesSyncDate time.Time
-	PipelineName      string
 	PipelineId        int
 	RunId             int
 }

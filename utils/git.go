@@ -5,6 +5,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"os"
+	"strings"
 )
 
 func GetCurrentBranchName() (string, error) {
@@ -71,4 +72,35 @@ func getLocalRepo() (*git.Repository, error) {
 		DetectDotGit: true,
 	})
 	return repository, nil
+}
+
+func GetRootDir() (string, error) {
+	repository, err := getLocalRepo()
+	if err != nil {
+		return "", err
+	}
+
+	worktree, err := repository.Worktree()
+	if err != nil {
+		return "", err
+	}
+	return worktree.Filesystem.Root(), nil
+}
+
+func GetRelativeDir() (string, error) {
+	rootDir, err := GetRootDir()
+	if err != nil {
+		return "", err
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	if !strings.HasPrefix(wd, rootDir) {
+		return "", fmt.Errorf("not on git directory. git directory %s, pwd %s", rootDir, wd)
+	}
+
+	return wd[len(rootDir):], nil
 }

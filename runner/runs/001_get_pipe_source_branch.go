@@ -49,10 +49,11 @@ func (_ _01) Init(ctx context.Context, state *datastruct.PipedCommandState) (str
 
 func (_ _01) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
 	httpClient := ctx.Value("client").(http.PipelineHttpClient)
+	dirConfig := ctx.Value("dirConfig").(*utils.DirConfig)
 	state.ShouldTriggerPipelinesSync = true
 	syncStatusResp, err := requests.GetSyncStatus(httpClient, models.SyncOptions{
 		PipelineSourceBranches: state.GitBranch,
-		PipelineSourceId:       utils.ArtifactoryPipelinesSourceId,
+		PipelineSourceId:       dirConfig.PipelinesSourceId,
 		Light:                  true,
 	})
 	if err != nil {
@@ -62,15 +63,16 @@ func (_ _01) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 	if len(syncStatusResp.SyncStatuses) == 0 {
 		return &datastruct.RunStatus{
 			Message: fmt.Sprintf("Couldn't find pipes for branch %s, retrying", state.GitBranch),
+			Status:  "waiting for pipeline",
 			Done:    false,
 		}, nil
 	}
 
 	syncStatus := syncStatusResp.SyncStatuses[0]
-	if !(syncStatus.IsSyncing) &&
-		syncStatus.LastSyncStatusCode != models.Success {
+	if !syncStatus.IsSyncing && syncStatus.LastSyncStatusCode != models.Success {
 		return &datastruct.RunStatus{
 			Message: fmt.Sprintf("Sync status is complete but sync failed, triggering sync again"),
+			Status:  "sync failed",
 			Done:    true,
 		}, nil
 	}

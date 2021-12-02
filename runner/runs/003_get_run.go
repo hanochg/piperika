@@ -20,18 +20,17 @@ import (
 */
 
 func (_ _03) Init(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
-	// TODO set it according the local dir
-	state.PipelineName = "access_build"
 	return "", nil
 }
 
 func (_ _03) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
 	httpClient := ctx.Value("client").(http.PipelineHttpClient)
+	dirConfig := ctx.Value("dirConfig").(*utils.DirConfig)
 	pipeResp, err := requests.GetPipelines(httpClient, models.GetPipelinesOptions{
 		SortBy:     "latestRunId",
 		FilterBy:   state.GitBranch,
 		Light:      true,
-		PipesNames: state.PipelineName,
+		PipesNames: dirConfig.PipelineName,
 	})
 	if err != nil {
 		return nil, err
