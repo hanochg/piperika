@@ -1,4 +1,4 @@
-package runs
+package command
 
 import (
 	"context"
@@ -16,11 +16,11 @@ import (
 	Run Description
 	---------------
 	- Get the run steps and status
-	- Wait for the run to complete of fail
+	- ResolveState for the run to complete of fail
 	- Gives statistics and details about the current run
 */
 
-func (_ _04) Init(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
+func (_ _04) RetryableDoBeforeTrigger(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	stepsResp, err := requests.GetSteps(httpClient, models.GetStepsOptions{
 		RunIds: strconv.Itoa(state.RunId),
@@ -42,7 +42,7 @@ func (_ _04) Init(ctx context.Context, state *datastruct.PipedCommandState) (str
 	return "", nil
 }
 
-func (_ _04) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
+func (_ _04) TriggerOnceIfNecessary(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	runStatus, err := requests.GetRuns(httpClient, models.GetRunsOptions{
 		RunIds: strconv.Itoa(state.RunId),
@@ -100,7 +100,7 @@ func (_ _04) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 	}, nil
 }
 
-func (_ _04) OnComplete(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
+func (_ _04) RetryableDoAfterTrigger(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	_, err := requests.GetStepsTestReports(httpClient, models.StepsTestReportsOptions{StepIds: state.RunStepIdsCsv})
 	if err != nil {

@@ -1,4 +1,4 @@
-package runs
+package command
 
 import (
 	"context"
@@ -13,14 +13,14 @@ import (
 /*
 	Run Description
 	---------------
-	- Wait for a successful sync completion
+	- ResolveState for a successful sync completion
 */
 
-func (_ _02) Init(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
+func (_ _02) RetryableDoBeforeTrigger(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
 	return "", nil
 }
 
-func (a _02) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
+func (a _02) TriggerOnceIfNecessary(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	syncStatus, err := requests.GetSyncStatus(httpClient, models.SyncOptions{
@@ -38,18 +38,18 @@ func (a _02) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 
 	if syncStatus.SyncStatuses[0].IsSyncing {
 		return &datastruct.RunStatus{
-			Status: "still syncing",
+			Status: "Pipelines is still syncing your branch to last commit hash",
 			Done:   false,
 		}, nil
 	}
 
 	return &datastruct.RunStatus{
-		Status: "nothing to sync or wait for",
+		Status: "Pipelines sources already synced with your branch",
 		Done:   true,
 	}, nil
 }
 
-func (_ _02) OnComplete(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
+func (_ _02) RetryableDoAfterTrigger(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	syncStatusResp, err := requests.GetSyncStatus(httpClient, models.SyncOptions{

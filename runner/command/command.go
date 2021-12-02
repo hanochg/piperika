@@ -1,8 +1,6 @@
-package datastruct
+package command
 
-import (
-	"context"
-)
+import "context"
 
 type PipedCommandState struct {
 	// git details
@@ -21,6 +19,12 @@ type PipedCommandState struct {
 	RunStepIdsCsv     string
 }
 
-type PipedCommand interface {
-	Run(ctx context.Context, state *PipedCommandState) error
+type Status struct {
+	PipelinesStatus string
+	Message         string
+}
+
+type Command interface {
+	ResolveState(ctx context.Context, state *PipedCommandState) (status Status, err error)
+	TriggerStateChange(ctx context.Context, state *PipedCommandState) error
 }

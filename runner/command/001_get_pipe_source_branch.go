@@ -1,4 +1,4 @@
-package runs
+package command
 
 import (
 	"context"
@@ -21,36 +21,11 @@ import (
 	- Check if the synced branch is synced to the right commit sha
 */
 
-func (_ _01) Init(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
-	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
-	state.PipelinesSourceId = dirConfig.PipelinesSourceId
+func (_ _01) RetryableDoBeforeTrigger(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
 
-	branchName, err := utils.GetCurrentBranchName()
-	if err != nil {
-		return "", errors.Wrap(err, "failed resolving current git branch")
-	}
-
-	localCommitHash, err := utils.GetCommitHash(branchName, false)
-	if err != nil {
-		return "", err
-	}
-	remoteCommitHash, err := utils.GetCommitHash(branchName, true)
-	if err != nil {
-		return "", err
-	}
-
-	if localCommitHash != remoteCommitHash {
-		return "", fmt.Errorf("local commit hash is different than remote, push your changes before triggering a build")
-	}
-
-	state.GitBranch = branchName
-	state.HeadCommitSha = remoteCommitHash
-	//state.HeadCommitSha = "b8cb635bf49ce48e6de66455b58bd374f6c84c65" //TODO only for tests
-
-	return "git details:\ncurrent branch: %s\nlocal commit hash:  %s\nremote commit hash: %s", nil
 }
 
-func (_ _01) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
+func (_ _01) TriggerOnceIfNecessary(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	state.ShouldTriggerPipelinesSync = true
@@ -105,7 +80,7 @@ func (_ _01) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 	}, nil
 }
 
-func (_ _01) OnComplete(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
+func (_ _01) RetryableDoAfterTrigger(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
 	if state.ShouldTriggerPipelinesSync {
 		httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 

@@ -1,4 +1,4 @@
-package runs
+package command
 
 import (
 	"context"
@@ -18,16 +18,16 @@ import (
 	---------------
 	- Get all the relevant runs
 	- Check if there are relevant (on the same commit sha) active runs
-	- Trigger a new run with "trigger_all"
+	- TriggerStateChange a new run with "trigger_all"
 */
 
-func (_ _03) Init(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
+func (_ _03) RetryableDoBeforeTrigger(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
 	state.RunId = -1
 	state.RunNumber = -1
 	return "", nil
 }
 
-func (_ _03) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
+func (_ _03) TriggerOnceIfNecessary(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
 
@@ -122,7 +122,7 @@ func (_ _03) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 
 }
 
-func (_ _03) OnComplete(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
+func (_ _03) RetryableDoAfterTrigger(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	if state.ShouldTriggerRun {

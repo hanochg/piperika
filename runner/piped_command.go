@@ -3,42 +3,65 @@ package runner
 import (
 	"context"
 	"fmt"
-	"github.com/hanochg/piperika/runner/datastruct"
+	"github.com/cenkalti/backoff"
+	"github.com/hanochg/piperika/runner/commands"
+	"time"
 )
 
-type pipedCommand struct {
-	datastruct.Runner
-	operationName string
-	runnerConfig
+type PipedCommand interface {
+	Run(ctx context.Context, state *command.PipedCommandState) error
 }
 
-func NewPipedCommand(operationName string, runner datastruct.Runner, runnerConfig runnerConfig) *pipedCommand {
-	return &pipedCommand{
-		Runner:        runner,
-		runnerConfig:  runnerConfig,
+type backoffConfig struct {
+	interval   time.Duration
+	maxRetries int
+}
+
+type retryingPipedCommand struct {
+	command.Command
+	operationName string
+	backoffConfig
+}
+
+func NewRetryingPipedCommand(operationName string, cmd command.Command, backoffConfig backoffConfig) *retryingPipedCommand {
+	return &retryingPipedCommand{
+		Command:       cmd,
+		backoffConfig: backoffConfig,
 		operationName: operationName,
 	}
 }
 
-func (c *pipedCommand) Run(ctx context.Context, state *datastruct.PipedCommandState) error {
-	_, err := c.Init(ctx, state)
-	if err != nil {
-		return err
+func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedCommandState) error {
+	waitErr := c.retryResolveState(ctx, state)
+
+	if waitErr != nil {
+		triggerErr := c.TriggerStateChange(ctx, state)
+		if triggerErr != nil {
+			return triggerErr
+		}
+
+		secondWaitErr := c.retryResolveState(ctx, state)
+		if secondWaitErr != nil {
+			return secondWaitErr
+		}
 	}
 
-	lastStatus, err := c.Tick(ctx, state)
-	if err != nil {
-		return err
-
-	}
-
-	_, err = c.OnComplete(ctx, state, lastStatus)
-	if err != nil {
-		return err
-
-	}
-
-	fmt.Printf("%s: succeed\n", c.operationName)
-
+	fmt.Printf("%s: finished\n", c.operationName)
 	return nil
+}
+
+func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *command.PipedCommandState) error {
+	return backoff.Retry(
+		func() error {
+			_, err := c.ResolveState(ctx, state)
+			// TODO: print status line / error
+			return err
+		},
+		c.newBackoffContext(ctx),
+	)
+}
+
+func (c *retryingPipedCommand) newBackoffContext(ctx context.Context) backoff.BackOffContext {
+	initialBackoff := backoff.WithMaxRetries(backoff.NewConstantBackOff(c.interval), uint64(c.maxRetries))
+	return backoff.WithContext(initialBackoff, ctx)
 }
