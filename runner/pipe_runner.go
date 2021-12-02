@@ -9,12 +9,12 @@ import (
 var (
 	defaultBackoffConfig = backoffConfig{interval: time.Second, maxRetries: 30}
 
-	cmds = []PipedCommand{
-		NewRetryingPipedCommand("validate git state", command.New001ValidateGitState(), defaultBackoffConfig),
-		NewRetryingPipedCommand("sync pipelines sources", command.New002PipelinesSourcesBranchSync(), defaultBackoffConfig),
-		NewRetryingPipedCommand("find or trigger active run", command.New003PipelinesFindRun(), defaultBackoffConfig),
-		NewRetryingPipedCommand("wait for run to finish", command.New004PipelinesWaitRun(), defaultBackoffConfig),
-		NewRetryingPipedCommand("print run results", command.New005PipelinesPrintRun(), defaultBackoffConfig),
+	cmds = []pipedCommand{
+		newRetryingPipedCommand("validate git state", command.New001ValidateGitState(), defaultBackoffConfig),
+		newRetryingPipedCommand("sync pipelines sources", command.New002PipelinesSourcesBranchSync(), defaultBackoffConfig),
+		newRetryingPipedCommand("find or trigger active run", command.New003PipelinesFindRun(), defaultBackoffConfig),
+		newRetryingPipedCommand("wait for run to finish", command.New004PipelinesWaitRun(), defaultBackoffConfig),
+		newRetryingPipedCommand("print run results", command.New005PipelinesPrintRun(), defaultBackoffConfig),
 	}
 )
 

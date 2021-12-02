@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type PipedCommand interface {
+type pipedCommand interface {
 	Run(ctx context.Context, state *command.PipedCommandState) error
 }
 
@@ -23,7 +23,7 @@ type retryingPipedCommand struct {
 	backoffConfig
 }
 
-func NewRetryingPipedCommand(operationName string, cmd command.Command, backoffConfig backoffConfig) *retryingPipedCommand {
+func newRetryingPipedCommand(operationName string, cmd command.Command, backoffConfig backoffConfig) *retryingPipedCommand {
 	return &retryingPipedCommand{
 		Command:       cmd,
 		backoffConfig: backoffConfig,

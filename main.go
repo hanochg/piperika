@@ -13,7 +13,7 @@ func main() {
 func getApp() components.App {
 	app := components.App{}
 	app.Name = "piperika"
-	app.Description = "Top features pipelines JFrog CLI plugin"
+	app.Description = "JFrog Pipelines in a simple command"
 	app.Version = "v1.0.0"
 	app.Commands = getCommands()
 	return app

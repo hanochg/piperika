@@ -12,9 +12,9 @@ import (
 
 func GetCommand() components.Command {
 	return components.Command{
-		Name:        "pipelines",
-		Description: "pipelines operations",
-		Aliases:     []string{"pp"},
+		Name:        "run",
+		Description: "Start a Pipelines run with your local git branch (if needed)",
+		Aliases:     []string{"r"},
 		Arguments:   getArguments(),
 		Flags:       getFlags(),
 		Action:      action,
@@ -22,9 +22,7 @@ func GetCommand() components.Command {
 }
 
 func getArguments() []components.Argument {
-	return []components.Argument{
-		{Name: "command", Description: "perform a command like get / list"},
-	}
+	return []components.Argument{}
 }
 
 func getFlags() []components.Flag {
