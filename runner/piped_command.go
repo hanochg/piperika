@@ -26,7 +26,13 @@ func (c *pipedCommand) Run(ctx context.Context, state *datastruct.PipedCommandSt
 		return err
 	}
 
-	_, err = c.Tick(ctx, state)
+	lastStatus, err := c.Tick(ctx, state)
+	if err != nil {
+		return err
+
+	}
+
+	_, err = c.OnComplete(ctx, state, lastStatus)
 	if err != nil {
 		return err
 

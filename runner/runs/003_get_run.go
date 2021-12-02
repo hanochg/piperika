@@ -10,6 +10,7 @@ import (
 	"github.com/hanochg/piperika/utils"
 	"strconv"
 	"strings"
+	"time"
 )
 
 /*
@@ -46,7 +47,7 @@ func (_ _03) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 		PipelineIds: strconv.Itoa(state.PipelineId),
 		Limit:       10,
 		Light:       true,
-		StatusCodes: models.Processing,
+		StatusCodes: strconv.Itoa(int(models.Processing)),
 		SortBy:      "runNumber",
 		SortOrder:   -1,
 	})
@@ -64,7 +65,7 @@ func (_ _03) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 	for _, run := range runResp.Runs {
 		runIds = append(runIds, strconv.Itoa(run.RunId))
 	}
-	runResourceResp, err := requests.GetResourceVersions(httpClient, models.GetResourcesOptions{
+	runResourceResp, err := requests.GetRunResourceVersions(httpClient, models.GetRunResourcesOptions{
 		PipelineSourceIds: strconv.Itoa(state.PipelinesSourceId),
 		RunIds:            strings.Trim(strings.Join(runIds, ","), "[]"),
 	})
@@ -85,7 +86,7 @@ func (_ _03) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 			continue
 		}
 		if runResource.ResourceVersionContentPropertyBag.CommitSha == state.HeadCommitSha {
-			activeRunId = runResource.Id
+			activeRunId = runResource.RunId
 			break
 		}
 	}
@@ -110,7 +111,7 @@ func (_ _03) OnComplete(ctx context.Context, state *datastruct.PipedCommandState
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	if state.ShouldTriggerRun {
-		pipeSteps, err := requests.GetPipelinesSteps(httpClient, models.GetStepsOptions{
+		pipeSteps, err := requests.GetPipelinesSteps(httpClient, models.GetPipelinesStepsOptions{
 			PipelineIds:       strconv.Itoa(state.PipelineId),
 			PipelineSourceIds: strconv.Itoa(state.PipelinesSourceId),
 			Names:             utils.DefaultPipelinesStepNameToTrigger,
@@ -123,10 +124,28 @@ func (_ _03) OnComplete(ctx context.Context, state *datastruct.PipedCommandState
 			return "", fmt.Errorf("tried to trigger a run for step '%s' but coulnd't fetch its Id", utils.DefaultPipelinesStepNameToTrigger)
 		}
 
-		_, err = requests.TriggerPipelinesStep(httpClient, models.GetStepsOptions{}, pipeSteps.Steps[0].Id)
+		err = requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)
 		if err != nil {
 			return "", err
 		}
+
+		// Giving Pipelines time to digest the request and create a new run
+		time.Sleep(3 * time.Second)
+
+		runResp, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+			PipelineIds: strconv.Itoa(state.PipelineId),
+			Limit:       1,
+			Light:       true,
+			SortBy:      "createdAt",
+			SortOrder:   -1,
+		})
+		if err != nil {
+			return "", err
+		}
+		if len(runResp.Runs) == 0 {
+			return "", fmt.Errorf("failed to get the triggered run")
+		}
+		state.RunId = runResp.Runs[0].RunId
 	}
 
 	return "", nil
