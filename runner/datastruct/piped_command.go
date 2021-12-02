@@ -15,6 +15,7 @@ type PipedCommandState struct {
 	ShouldTriggerRun           bool
 
 	// pipelines details
+	PipelinesSourceId int
 	PipelinesSyncDate time.Time
 	PipelineId        int
 	RunId             int

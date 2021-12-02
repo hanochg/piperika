@@ -22,6 +22,9 @@ import (
 */
 
 func (_ _01) Init(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
+	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
+	state.PipelinesSourceId = dirConfig.PipelinesSourceId
+
 	branchName, err := utils.GetCurrentBranchName()
 	if err != nil {
 		return "", errors.Wrap(err, "failed resolving current git branch")
@@ -42,18 +45,18 @@ func (_ _01) Init(ctx context.Context, state *datastruct.PipedCommandState) (str
 
 	state.GitBranch = branchName
 	state.HeadCommitSha = remoteCommitHash
-	//state.HeadCommitSha = "b8cb635bf49ce48e6de66455b58bd374f6c84c65" //TODO only for tests
+	state.HeadCommitSha = "b8cb635bf49ce48e6de66455b58bd374f6c84c65" //TODO only for tests
 
 	return "git details:\ncurrent branch: %s\nlocal commit hash:  %s\nremote commit hash: %s", nil
 }
 
 func (_ _01) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
-	httpClient := ctx.Value("client").(http.PipelineHttpClient)
-	dirConfig := ctx.Value("dirConfig").(*utils.DirConfig)
+	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+
 	state.ShouldTriggerPipelinesSync = true
 	syncStatusResp, err := requests.GetSyncStatus(httpClient, models.SyncOptions{
 		PipelineSourceBranches: state.GitBranch,
-		PipelineSourceId:       dirConfig.PipelinesSourceId,
+		PipelineSourceId:       state.PipelinesSourceId,
 		Light:                  true,
 	})
 	if err != nil {
@@ -62,9 +65,8 @@ func (_ _01) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 
 	if len(syncStatusResp.SyncStatuses) == 0 {
 		return &datastruct.RunStatus{
-			Message: fmt.Sprintf("Couldn't find pipes for branch %s, retrying", state.GitBranch),
-			Status:  "waiting for pipeline",
-			Done:    false,
+			Message: fmt.Sprintf("Couldn't find pipes for branch %s, triggering a sync", state.GitBranch),
+			Done:    true,
 		}, nil
 	}
 
@@ -78,7 +80,7 @@ func (_ _01) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 	}
 
 	resVersions, err := requests.GetResourceVersions(httpClient, models.GetResourcesOptions{
-		PipelineSourceIds:  strconv.Itoa(utils.ArtifactoryPipelinesSourceId),
+		PipelineSourceIds:  strconv.Itoa(state.PipelinesSourceId),
 		ResourceVersionIds: strconv.Itoa(syncStatus.ResourceVersionId),
 	})
 	if err != nil {
@@ -104,12 +106,13 @@ func (_ _01) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 }
 
 func (_ _01) OnComplete(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
-	httpClient := ctx.Value("client").(http.PipelineHttpClient)
 	if state.ShouldTriggerPipelinesSync {
+		httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+
 		_, err := requests.SyncSource(httpClient, models.SyncSourcesOptions{
 			Branch:           state.GitBranch,
 			ShouldSync:       true,
-			PipelineSourceId: utils.ArtifactoryPipelinesSourceId,
+			PipelineSourceId: state.PipelinesSourceId,
 		})
 		if err != nil {
 			return "", err

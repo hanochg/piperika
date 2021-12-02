@@ -20,11 +20,12 @@ func (_ _02) Init(ctx context.Context, state *datastruct.PipedCommandState) (str
 	return "", nil
 }
 
-func (_ _02) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
-	httpClient := ctx.Value("client").(http.PipelineHttpClient)
+func (a _02) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*datastruct.RunStatus, error) {
+	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+
 	syncStatus, err := requests.GetSyncStatus(httpClient, models.SyncOptions{
 		PipelineSourceBranches: state.GitBranch,
-		PipelineSourceId:       utils.ArtifactoryPipelinesSourceId,
+		PipelineSourceId:       state.PipelinesSourceId,
 		Light:                  false,
 	})
 	if err != nil {
@@ -48,10 +49,11 @@ func (_ _02) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 }
 
 func (_ _02) OnComplete(ctx context.Context, state *datastruct.PipedCommandState, status *datastruct.RunStatus) (string, error) {
-	httpClient := ctx.Value("client").(http.PipelineHttpClient)
+	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+
 	syncStatusResp, err := requests.GetSyncStatus(httpClient, models.SyncOptions{
 		PipelineSourceBranches: state.GitBranch,
-		PipelineSourceId:       utils.ArtifactoryPipelinesSourceId,
+		PipelineSourceId:       state.PipelinesSourceId,
 		Light:                  false,
 	})
 	if err != nil {
