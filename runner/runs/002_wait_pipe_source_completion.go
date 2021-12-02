@@ -38,13 +38,14 @@ func (a _02) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 
 	if syncStatus.SyncStatuses[0].IsSyncing {
 		return &datastruct.RunStatus{
-			Message: "still syncing",
-			Done:    false,
+			Status: "still syncing",
+			Done:   false,
 		}, nil
 	}
+
 	return &datastruct.RunStatus{
-		Message: "nothing to sync or wait for",
-		Done:    true,
+		Status: "nothing to sync or wait for",
+		Done:   true,
 	}, nil
 }
 
@@ -69,12 +70,6 @@ func (_ _02) OnComplete(ctx context.Context, state *datastruct.PipedCommandState
 		return "", fmt.Errorf("branch sync is not ready or faulty, branch %s, is syncing %t, last sync status %d",
 			state.GitBranch, syncStatusResp.SyncStatuses[0].IsSyncing, syncStatusResp.SyncStatuses[0].LastSyncStatusCode)
 	}
-
-	lastSynced, err := utils.PipelinesTimeParser(syncStatusResp.SyncStatuses[0].LastSyncEndedAt)
-	if err != nil {
-		return "", err
-	}
-	state.PipelinesSyncDate = lastSynced
 	return "", nil
 }
 

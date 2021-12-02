@@ -13,10 +13,9 @@ type ContentPropertyBag struct {
 }
 
 type Resource struct {
-	ContentPropertyBag                ContentPropertyBag `json:"contentPropertyBag"`
-	ResourceVersionContentPropertyBag ContentPropertyBag `json:"resourceVersionContentPropertyBag"`
-	Id                                int                `json:"id"`
-	ResourceTypeCode                  ResourceTypes      `json:"resourceTypeCode"`
+	ContentPropertyBag ContentPropertyBag `json:"contentPropertyBag"`
+	Id                 int                `json:"id"`
+	ResourceTypeCode   ResourceTypes      `json:"resourceTypeCode"`
 }
 
 type ResourcesResponse struct {

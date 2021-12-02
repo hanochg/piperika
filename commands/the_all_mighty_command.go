@@ -40,11 +40,11 @@ func theAllMightyCommand(c *components.Context) error {
 	if err != nil {
 		return err
 	}
-	//dirConfig, err := utils.GetDirConfig()
-	dirConfig := &utils.DirConfig{ //TODO for tests
-		PipelineName:      "access_build",
-		PipelinesSourceId: 6,
-	}
+	dirConfig, err := utils.GetDirConfig()
+	//dirConfig := &utils.DirConfig{ //TODO only for tests
+	//	PipelineName:      "access_build",
+	//	PipelinesSourceId: 6,
+	//}
 	if err != nil {
 		return err
 	}

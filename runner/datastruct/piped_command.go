@@ -2,7 +2,6 @@ package datastruct
 
 import (
 	"context"
-	"time"
 )
 
 type PipedCommandState struct {
@@ -16,7 +15,6 @@ type PipedCommandState struct {
 
 	// pipelines details
 	PipelinesSourceId int
-	PipelinesSyncDate time.Time
 	PipelineId        int
 	RunId             int
 }

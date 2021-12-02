@@ -1,16 +1,16 @@
 package models
 
-type GetStepsOptions struct {
+type GetPipelinesStepsOptions struct {
 	PipelineIds       string `url:"pipelineIds,omitempty"`
 	PipelineSourceIds string `url:"pipelineSourceIds,omitempty"`
 	Names             string `url:"names,omitempty"`
 }
 
-type Steps struct {
-	Id   int `json:"id"`
-	Name int `json:"name"`
+type PipelinesSteps struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }
 
-type StepsResponse struct {
-	Steps []Steps
+type PipelinesStepsResponse struct {
+	Steps []PipelinesSteps
 }
