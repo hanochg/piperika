@@ -45,7 +45,7 @@ func (_ _01) Init(ctx context.Context, state *datastruct.PipedCommandState) (str
 
 	state.GitBranch = branchName
 	state.HeadCommitSha = remoteCommitHash
-	state.HeadCommitSha = "b8cb635bf49ce48e6de66455b58bd374f6c84c65" //TODO only for tests
+	//state.HeadCommitSha = "b8cb635bf49ce48e6de66455b58bd374f6c84c65" //TODO only for tests
 
 	return "git details:\ncurrent branch: %s\nlocal commit hash:  %s\nremote commit hash: %s", nil
 }

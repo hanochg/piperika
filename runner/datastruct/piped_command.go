@@ -17,6 +17,8 @@ type PipedCommandState struct {
 	PipelinesSourceId int
 	PipelineId        int
 	RunId             int
+	RunNumber         int
+	RunStepIdsCsv     string
 }
 
 type PipedCommand interface {
