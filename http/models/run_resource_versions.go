@@ -3,6 +3,8 @@ package models
 type GetRunResourcesOptions struct {
 	PipelineSourceIds string `url:"pipelineSourceIds,omitempty"` // Can be a csv list
 	RunIds            string `url:"runIds,omitempty"`            // Can be a csv list
+	SortBy            string `url:"sortBy,omitempty"`
+	SortOrder         int    `url:"sortOrder,omitempty"`
 }
 
 type RunContentPropertyBag struct {

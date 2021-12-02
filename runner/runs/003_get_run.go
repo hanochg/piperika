@@ -22,6 +22,8 @@ import (
 */
 
 func (_ _03) Init(ctx context.Context, state *datastruct.PipedCommandState) (string, error) {
+	state.RunId = -1
+	state.RunNumber = -1
 	return "", nil
 }
 
@@ -68,6 +70,8 @@ func (_ _03) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 	runResourceResp, err := requests.GetRunResourceVersions(httpClient, models.GetRunResourcesOptions{
 		PipelineSourceIds: strconv.Itoa(state.PipelinesSourceId),
 		RunIds:            strings.Trim(strings.Join(runIds, ","), "[]"),
+		SortBy:            "resourceTypeCode",
+		SortOrder:         1,
 	})
 	if err != nil {
 		return nil, err
@@ -80,19 +84,30 @@ func (_ _03) Tick(ctx context.Context, state *datastruct.PipedCommandState) (*da
 		}, nil
 	}
 
-	activeRunId := -1
+	activeRunIds := make([]int, 0)
 	for _, runResource := range runResourceResp.Resources {
 		if runResource.ResourceTypeCode != models.GitRepo {
 			continue
 		}
 		if runResource.ResourceVersionContentPropertyBag.CommitSha == state.HeadCommitSha {
-			activeRunId = runResource.RunId
+			activeRunIds = append(activeRunIds, runResource.RunId)
 			break
 		}
 	}
 
-	if activeRunId != -1 {
-		state.RunId = activeRunId
+	// Get the most recent run from the list
+	for _, runIdStr := range runIds {
+		runId, err := strconv.Atoi(runIdStr)
+		if err != nil {
+			return nil, err
+		}
+		if utils.Contains(activeRunIds, runId) {
+			state.RunId = runId
+			break
+		}
+	}
+
+	if len(activeRunIds) != 0 && state.RunId != -1 {
 		return &datastruct.RunStatus{
 			Message: "Found an active run id",
 			Done:    true,
@@ -146,6 +161,20 @@ func (_ _03) OnComplete(ctx context.Context, state *datastruct.PipedCommandState
 			return "", fmt.Errorf("failed to get the triggered run")
 		}
 		state.RunId = runResp.Runs[0].RunId
+		state.RunNumber = runResp.Runs[0].RunNumber
+	}
+
+	if state.RunNumber == -1 {
+		runResp, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+			RunIds: strconv.Itoa(state.RunId),
+		})
+		if err != nil {
+			return "", err
+		}
+		if len(runResp.Runs) == 0 {
+			return "", fmt.Errorf("failed to get the triggered run")
+		}
+		state.RunNumber = runResp.Runs[0].RunNumber
 	}
 
 	return "", nil

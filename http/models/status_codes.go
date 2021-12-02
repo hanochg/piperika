@@ -14,4 +14,5 @@ const (
 	Skipped    StatusCode = 4008
 	TimedOut   StatusCode = 4009
 	TimingOut  StatusCode = 4014
+	Creating   StatusCode = 4015
 )
