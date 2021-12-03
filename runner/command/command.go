@@ -22,7 +22,15 @@ type PipedCommandState struct {
 type Status struct {
 	PipelinesStatus string
 	Message         string
+	Type            StatusType
 }
+
+type StatusType string
+
+const (
+	InProgress StatusType = "in-progress"
+	Done       StatusType = "done"
+)
 
 type Command interface {
 	ResolveState(ctx context.Context, state *PipedCommandState) (status Status, err error)

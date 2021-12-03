@@ -41,6 +41,7 @@ func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 
 	return Status{
 		Message: "git details:\ncurrent branch: %s\nlocal commit hash:  %s\nremote commit hash: %s",
+		Type:    Done,
 	}, nil
 }
 

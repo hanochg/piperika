@@ -34,6 +34,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 	}
 
 	if len(stepsResp.Steps) == 0 {
+		// Itai comment - Do we want to wait here or fail?
 		return Status{}, fmt.Errorf("cannot get the steps of the current run, run id %d", state.RunId)
 	}
 
@@ -56,13 +57,18 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 	if runStatus.Runs[0].StatusCode == models.Creating ||
 		runStatus.Runs[0].StatusCode == models.Waiting ||
 		runStatus.Runs[0].StatusCode == models.Processing {
-		return Status{}, fmt.Errorf("run %d started at %s is in progress",
-			runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt)
+		return Status{
+			PipelinesStatus: "TBD Convert status code to string",
+			Message: fmt.Sprintf("run %d started at %s is in progress",
+				runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt),
+			Type: InProgress,
+		}, nil
 	}
 
 	return Status{
 		Message: fmt.Sprintf("run %d started at %s and finished at %s with status %d",
 			runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt, runStatus.Runs[0].EndedAt, runStatus.Runs[0].StatusCode),
+		Type: Done,
 	}, nil
 }
 

@@ -46,8 +46,12 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 	}
 
 	if len(processingSteps) != 0 {
-		return Status{}, fmt.Errorf("run %d has %d steps. currently %d are processing, %d failed, and %d succeeded",
-			state.RunNumber, len(steps.Steps), len(processingSteps), len(failedSteps), len(successSteps))
+		return Status{
+			PipelinesStatus: "processing",
+			Message: fmt.Sprintf("run %d has %d steps. currently %d are processing, %d failed, and %d succeeded",
+				state.RunNumber, len(steps.Steps), len(processingSteps), len(failedSteps), len(successSteps)),
+			Type: InProgress,
+		}, nil
 	}
 
 	_, err = requests.GetStepsTestReports(httpClient, models.StepsTestReportsOptions{StepIds: state.RunStepIdsCsv})
@@ -60,6 +64,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 	return Status{
 		Message: fmt.Sprintf("run %d has %d steps. %d failed, and %d succeeded",
 			state.RunNumber, len(steps.Steps), len(failedSteps), len(successSteps)),
+		Type: Done,
 	}, nil
 }
 

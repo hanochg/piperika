@@ -33,7 +33,11 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 		return Status{}, err
 	}
 	if len(pipeResp.Pipelines) == 0 {
-		return Status{}, fmt.Errorf("failed to get the pipeline")
+		return Status{
+			PipelinesStatus: "missing pipeline",
+			Message:         "Waiting for pipeline creation",
+			Type:            InProgress,
+		}, nil
 	}
 	state.PipelineId = pipeResp.Pipelines[0].PipelineId
 
@@ -49,6 +53,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 		return Status{}, err
 	}
 	if len(runResp.Runs) == 0 {
+		// Itai comment: not sure about that, runs handling should be in next step.
 		return Status{}, backoff.Permanent(fmt.Errorf("no runs exist, triggering new run"))
 	}
 
@@ -104,6 +109,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 	if len(activeRunIds) != 0 && state.RunId != -1 {
 		return Status{
 			Message: "Found an active run id",
+			Type:    Done,
 		}, nil
 	}
 

@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/hanochg/piperika/runner/command"
@@ -35,36 +36,46 @@ func newRetryingPipedCommand(operationName string, cmd command.Command, backoffC
 func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedCommandState) error {
 	waitErr := c.retryResolveState(ctx, state)
 
-	if waitErr != nil {
-		triggerErr := c.TriggerStateChange(ctx, state)
-		if triggerErr != nil {
-			return triggerErr
-		}
-
-		secondWaitErr := c.retryResolveState(ctx, state)
-		if secondWaitErr != nil {
-			return secondWaitErr
-		}
+	if waitErr == nil {
+		return nil
+	}
+	if !errors.As(waitErr, &timeOutError{}) {
+		return waitErr
 	}
 
-	fmt.Printf("%s: finished\n", c.operationName)
-	return nil
+	// Time out
+	triggerErr := c.TriggerStateChange(ctx, state)
+	if triggerErr != nil {
+		return triggerErr
+	}
+
+	return c.retryResolveState(ctx, state)
 }
 
 func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *command.PipedCommandState) error {
-	return backoff.RetryNotify(
-		func() error {
-			status, err := c.ResolveState(ctx, state)
-			if err != nil {
-				return err
-			}
-			return terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD")
-		},
-		c.newBackoffContext(ctx),
-		func(err error, duration time.Duration) {
-			println(fmt.Sprintf("######### %v", err.Error()))
-		},
-	)
+	backoffConfig := c.newBackoffContext(ctx)
+	for currInterval := backoffConfig.NextBackOff(); currInterval > 0; currInterval = backoffConfig.NextBackOff() {
+		var currentStatus *command.Status
+		status, err := c.ResolveState(ctx, state)
+		if err != nil {
+			return err
+		}
+
+		err = terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD")
+		if err != nil {
+			return err
+		}
+
+		if currentStatus.Type == command.Done {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("timed-out %w", timeOutError{})
+}
+
+type timeOutError struct {
+	error
 }
 
 func (c *retryingPipedCommand) newBackoffContext(ctx context.Context) backoff.BackOffContext {

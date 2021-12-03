@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"fmt"
-	"github.com/cenkalti/backoff"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/http/models"
 	"github.com/hanochg/piperika/http/requests"
@@ -30,12 +29,12 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 	}
 
 	if len(syncStatusResp.SyncStatuses) == 0 {
-		return Status{}, backoff.Permanent(fmt.Errorf("could not find pipes for branch %s, triggering a sync", state.GitBranch))
+		return Status{}, fmt.Errorf("could not find pipes for branch %s, triggering a sync", state.GitBranch)
 	}
 
 	syncStatus := syncStatusResp.SyncStatuses[0]
 	if !syncStatus.IsSyncing && syncStatus.LastSyncStatusCode != models.Success {
-		return Status{}, backoff.Permanent(fmt.Errorf("sync status is complete but sync failed, triggering sync again"))
+		return Status{}, fmt.Errorf("sync status is complete but sync failed, triggering sync again")
 	}
 
 	resVersions, err := requests.GetResourceVersions(httpClient, models.GetResourcesOptions{
@@ -47,19 +46,24 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 	}
 
 	if len(resVersions.Resources) == 0 {
-		return Status{}, backoff.Permanent(fmt.Errorf("invalid resource version id %d for branch %s", syncStatus.ResourceVersionId, state.GitBranch))
+		return Status{}, fmt.Errorf("invalid resource version id %d for branch %s", syncStatus.ResourceVersionId, state.GitBranch)
 	}
 
 	if resVersions.Resources[0].ContentPropertyBag.CommitSha != state.HeadCommitSha {
-		return Status{}, backoff.Permanent(fmt.Errorf("pipelines resource has different commit hash than the remote git commit hash, triggering a sync"))
+		return Status{}, fmt.Errorf("pipelines resource has different commit hash than the remote git commit hash, triggering a sync")
 	}
 
 	if syncStatus.IsSyncing {
-		return Status{}, fmt.Errorf("pipelines is still syncing your branch to last commit hash")
+		return Status{
+			PipelinesStatus: fmt.Sprintf("%d", syncStatus.LastSyncStatusCode), // Map to string
+			Message:         "pipelines is still syncing your branch to last commit hash",
+			Type:            InProgress,
+		}, nil
 	}
 
 	return Status{
 		Message: "pipelines source synced",
+		Type:    Done,
 	}, nil
 }
 
