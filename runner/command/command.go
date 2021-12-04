@@ -28,11 +28,13 @@ type Status struct {
 type StatusType string
 
 const (
-	InProgress StatusType = "in-progress"
-	Done       StatusType = "done"
+	InProgress    StatusType = "in-progress"
+	Done          StatusType = "done"
+	Failed        StatusType = "failed"
+	Unrecoverable StatusType = "unrecoverable"
 )
 
 type Command interface {
-	ResolveState(ctx context.Context, state *PipedCommandState) (status Status, err error)
-	TriggerStateChange(ctx context.Context, state *PipedCommandState) error
+	ResolveState(ctx context.Context, state *PipedCommandState) Status
+	TriggerStateChange(ctx context.Context, state *PipedCommandState) Status
 }

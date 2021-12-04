@@ -2,11 +2,11 @@ package runner
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/hanochg/piperika/runner/command"
 	"github.com/hanochg/piperika/terminal"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -35,46 +35,57 @@ func newRetryingPipedCommand(operationName string, cmd command.Command, backoffC
 
 func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedCommandState) error {
 	waitErr := c.retryResolveState(ctx, state)
-
 	if waitErr == nil {
 		return nil
 	}
-	if !errors.As(waitErr, &timeOutError{}) {
+	if errors.As(waitErr, &unrecoverableError{}) {
 		return waitErr
 	}
 
-	// Time out
-	triggerErr := c.TriggerStateChange(ctx, state)
-	if triggerErr != nil {
-		return triggerErr
+	status := c.TriggerStateChange(ctx, state)
+	if status.Type == command.Unrecoverable {
+		return fmt.Errorf(status.Message)
 	}
+	err := terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD", false)
+	if err != nil {
+		return err
+	}
+
+	// Giving Pipelines time to digest the triggered request
+	time.Sleep(3 * time.Second)
 
 	return c.retryResolveState(ctx, state)
 }
 
 func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *command.PipedCommandState) error {
-	backoffConfig := c.newBackoffContext(ctx)
-	for currInterval := backoffConfig.NextBackOff(); currInterval > 0; currInterval = backoffConfig.NextBackOff() {
-		var currentStatus *command.Status
-		status, err := c.ResolveState(ctx, state)
-		if err != nil {
-			return err
-		}
+	return backoff.Retry(
+		func() error {
+			status := c.ResolveState(ctx, state)
 
-		err = terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD")
-		if err != nil {
-			return err
-		}
+			isTempLine := status.Type == command.InProgress
+			err := terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD", isTempLine)
+			if err != nil {
+				return err
+			}
 
-		if currentStatus.Type == command.Done {
+			if status.Type == command.InProgress {
+				return fmt.Errorf("retrying %s", c.operationName)
+			}
+			if status.Type == command.Failed {
+				return backoff.Permanent(fmt.Errorf(status.Message))
+			}
+			if status.Type == command.Unrecoverable {
+				return backoff.Permanent(errors.Wrap(&unrecoverableError{}, status.Message))
+			}
+
+			// Done
 			return nil
-		}
-	}
-
-	return fmt.Errorf("timed-out %w", timeOutError{})
+		},
+		c.newBackoffContext(ctx),
+	)
 }
 
-type timeOutError struct {
+type unrecoverableError struct {
 	error
 }
 

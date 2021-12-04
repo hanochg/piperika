@@ -17,7 +17,7 @@ func New004PipelinesWaitRun() *_004 {
 
 type _004 struct{}
 
-func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) (Status, error) {
+func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	// TODO - as the run steps don't change, there's no need ot get them in each cycle
 	// we need to separate GetSteps from the GetRuns cycle
@@ -30,12 +30,18 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 		Limit:  100,
 	})
 	if err != nil {
-		return Status{}, err
+		return Status{
+			Type:    InProgress,
+			Message: fmt.Sprintf("Failed fetching pipeline steps data for run id '%d': %v", state.RunId, err),
+		}
 	}
 
 	if len(stepsResp.Steps) == 0 {
 		// Itai comment - Do we want to wait here or fail?
-		return Status{}, fmt.Errorf("cannot get the steps of the current run, run id %d", state.RunId)
+		return Status{
+			Type:    Failed,
+			Message: fmt.Sprintf("No steps for pipeline run id '%d'", state.RunId),
+		}
 	}
 
 	stepIds := make([]string, 0)
@@ -48,10 +54,16 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 		RunIds: strconv.Itoa(state.RunId),
 	})
 	if err != nil {
-		return Status{}, err
+		return Status{
+			Type:    InProgress,
+			Message: fmt.Sprintf("Failed fetching pipeline runs data: %v", err),
+		}
 	}
 	if len(runStatus.Runs) == 0 {
-		return Status{}, fmt.Errorf("cannot fetch run, retrying")
+		return Status{
+			Type:    InProgress,
+			Message: fmt.Sprintf("Could not resolve any runs for the pipeline"),
+		}
 	}
 
 	if runStatus.Runs[0].StatusCode == models.Creating ||
@@ -62,17 +74,19 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 			Message: fmt.Sprintf("run %d started at %s is in progress",
 				runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt),
 			Type: InProgress,
-		}, nil
+		}
 	}
 
 	return Status{
 		Message: fmt.Sprintf("run %d started at %s and finished at %s with status %d",
 			runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt, runStatus.Runs[0].EndedAt, runStatus.Runs[0].StatusCode),
 		Type: Done,
-	}, nil
+	}
 }
 
-func (c *_004) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
-	// do nothing
-	return nil
+func (c *_004) TriggerStateChange(ctx context.Context, state *PipedCommandState) Status {
+	return Status{
+		Type:    Unrecoverable,
+		Message: "Timed out",
+	}
 }

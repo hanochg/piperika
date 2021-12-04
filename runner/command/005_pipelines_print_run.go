@@ -16,7 +16,7 @@ func New005PipelinesPrintRun() *_005 {
 
 type _005 struct{}
 
-func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) (Status, error) {
+func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	// Get steps statuses
@@ -26,7 +26,10 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 		Limit:  0,
 	})
 	if err != nil {
-		return Status{}, err
+		return Status{
+			Type:    InProgress,
+			Message: fmt.Sprintf("Failed fetching pipeline steps data for run id '%d': %v", state.RunId, err),
+		}
 	}
 
 	failedSteps := make([]string, 0)
@@ -51,13 +54,15 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 			Message: fmt.Sprintf("run %d has %d steps. currently %d are processing, %d failed, and %d succeeded",
 				state.RunNumber, len(steps.Steps), len(processingSteps), len(failedSteps), len(successSteps)),
 			Type: InProgress,
-		}, nil
+		}
 	}
 
 	_, err = requests.GetStepsTestReports(httpClient, models.StepsTestReportsOptions{StepIds: state.RunStepIdsCsv})
 	if err != nil {
-		return Status{}, err
-
+		return Status{
+			Type:    InProgress,
+			Message: fmt.Sprintf("Failed fetching pipeline steps test reports for run id '%d': %v", state.RunId, err),
+		}
 	}
 	// TODO - print the tests results
 
@@ -65,10 +70,12 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 		Message: fmt.Sprintf("run %d has %d steps. %d failed, and %d succeeded",
 			state.RunNumber, len(steps.Steps), len(failedSteps), len(successSteps)),
 		Type: Done,
-	}, nil
+	}
 }
 
-func (c *_005) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
-	// do nothing
-	return nil
+func (c *_005) TriggerStateChange(ctx context.Context, state *PipedCommandState) Status {
+	return Status{
+		Type:    Unrecoverable,
+		Message: "Timed out",
+	}
 }

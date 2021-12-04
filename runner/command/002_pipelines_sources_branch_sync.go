@@ -16,7 +16,7 @@ func New002PipelinesSourcesBranchSync() *_002 {
 
 type _002 struct{}
 
-func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) (Status, error) {
+func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	syncStatusResp, err := requests.GetSyncStatus(httpClient, models.SyncOptions{
@@ -25,16 +25,25 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 		Light:                  true,
 	})
 	if err != nil {
-		return Status{}, err
+		return Status{
+			Type:    InProgress,
+			Message: fmt.Sprintf("Failed fetching pipeline sync data: %v", err),
+		}
 	}
 
 	if len(syncStatusResp.SyncStatuses) == 0 {
-		return Status{}, fmt.Errorf("could not find pipes for branch %s, triggering a sync", state.GitBranch)
+		return Status{
+			Type:    Failed,
+			Message: "Could not find any pipeline sync data for the branch, triggering sync",
+		}
 	}
 
 	syncStatus := syncStatusResp.SyncStatuses[0]
 	if !syncStatus.IsSyncing && syncStatus.LastSyncStatusCode != models.Success {
-		return Status{}, fmt.Errorf("sync status is complete but sync failed, triggering sync again")
+		return Status{
+			Type:    Failed,
+			Message: "Pipeline sync for the branch has already run and failed, triggering new sync",
+		}
 	}
 
 	resVersions, err := requests.GetResourceVersions(httpClient, models.GetResourcesOptions{
@@ -42,15 +51,24 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 		ResourceVersionIds: strconv.Itoa(syncStatus.ResourceVersionId),
 	})
 	if err != nil {
-		return Status{}, err
+		return Status{
+			Type:    InProgress,
+			Message: fmt.Sprintf("Failed fetching pipeline resources data: %v", err),
+		}
 	}
 
 	if len(resVersions.Resources) == 0 {
-		return Status{}, fmt.Errorf("invalid resource version id %d for branch %s", syncStatus.ResourceVersionId, state.GitBranch)
+		return Status{
+			Type:    InProgress,
+			Message: fmt.Sprintf("No resources for version id '%d' for branch '%s'", syncStatus.ResourceVersionId, state.GitBranch),
+		}
 	}
 
 	if resVersions.Resources[0].ContentPropertyBag.CommitSha != state.HeadCommitSha {
-		return Status{}, fmt.Errorf("pipelines resource has different commit hash than the remote git commit hash, triggering a sync")
+		return Status{
+			Type:    Failed,
+			Message: "Pipelines resource has different commit hash than the remote git commit hash, triggering a sync",
+		}
 	}
 
 	if syncStatus.IsSyncing {
@@ -58,16 +76,16 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) (Stat
 			PipelinesStatus: fmt.Sprintf("%d", syncStatus.LastSyncStatusCode), // Map to string
 			Message:         "pipelines is still syncing your branch to last commit hash",
 			Type:            InProgress,
-		}, nil
+		}
 	}
 
 	return Status{
 		Message: "pipelines source synced",
 		Type:    Done,
-	}, nil
+	}
 }
 
-func (c *_002) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
+func (c *_002) TriggerStateChange(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	_, err := requests.SyncSource(httpClient, models.SyncSourcesOptions{
@@ -76,7 +94,13 @@ func (c *_002) TriggerStateChange(ctx context.Context, state *PipedCommandState)
 		PipelineSourceId: state.PipelinesSourceId,
 	})
 	if err != nil {
-		return err
+		return Status{
+			Type:    Unrecoverable,
+			Message: fmt.Sprintf("Failed triggering pipeline sync: %v", err),
+		}
 	}
-	return nil
+	return Status{
+		Type:    Done,
+		Message: "Successfully triggered pipeline sync",
+	}
 }
