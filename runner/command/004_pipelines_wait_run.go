@@ -84,6 +84,6 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 }
 
-func (c *_004) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
+func (c *_004) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
 	return fmt.Errorf("timed out")
 }

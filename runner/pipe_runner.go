@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"github.com/hanochg/piperika/runner/command"
+	"github.com/hanochg/piperika/terminal"
 	"time"
 )
 
@@ -22,10 +23,16 @@ var (
 func RunPipe(ctx context.Context) error {
 	pipedState := &command.PipedCommandState{}
 	for _, cmd := range cmds {
-		err := cmd.Run(ctx, pipedState)
+		err := terminal.StartingRun(cmd.OperationName())
 		if err != nil {
 			return err
 		}
+
+		err = cmd.Run(ctx, pipedState)
+		if err != nil {
+			return err
+		}
+
 	}
 	return nil
 }

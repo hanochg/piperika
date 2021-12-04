@@ -12,6 +12,7 @@ import (
 
 type pipedCommand interface {
 	Run(ctx context.Context, state *command.PipedCommandState) error
+	OperationName() string
 }
 
 type backoffConfig struct {
@@ -33,6 +34,10 @@ func newRetryingPipedCommand(operationName string, cmd command.Command, backoffC
 	}
 }
 
+func (c *retryingPipedCommand) OperationName() string {
+	return c.operationName
+}
+
 func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedCommandState) error {
 	waitErr := c.retryResolveState(ctx, state)
 	if waitErr == nil {
@@ -42,7 +47,7 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 		return waitErr
 	}
 
-	err := c.TriggerStateChange(ctx, state)
+	err := c.TriggerOnFail(ctx, state)
 	if err != nil {
 		return err
 	}
@@ -55,24 +60,32 @@ func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *com
 		func() error {
 			status := c.ResolveState(ctx, state)
 
-			isTempLine := status.Type == command.InProgress
-			err := terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD", isTempLine)
-			if err != nil {
-				return err
-			}
-
-			if status.Type == command.InProgress {
+			switch status.Type {
+			case command.InProgress:
+				err := terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD")
+				if err != nil {
+					return err
+				}
 				return fmt.Errorf("retrying %s", c.operationName)
-			}
-			if status.Type == command.Failed {
-				return backoff.Permanent(fmt.Errorf(status.Message))
-			}
-			if status.Type == command.Unrecoverable {
-				return backoff.Permanent(errors.Wrap(&unrecoverableError{}, status.Message))
-			}
+			case command.Failed:
+				err := terminal.UpdateFail(c.operationName, status.PipelinesStatus, status.Message, "TBD")
+				if err != nil {
+					return err
+				}
 
-			// Done
-			return nil
+				return backoff.Permanent(fmt.Errorf(status.Message))
+			case command.Unrecoverable:
+				err := terminal.UpdateUnrecoverable(c.operationName, status.Message, "TBD")
+				if err != nil {
+					return err
+				}
+
+				return backoff.Permanent(errors.Wrap(&unrecoverableError{}, status.Message))
+			case command.Done:
+				return nil
+			default:
+				panic("Unexpected command type")
+			}
 		},
 		c.newBackoffContext(ctx),
 	)

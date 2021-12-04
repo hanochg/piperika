@@ -88,7 +88,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 }
 
-func (c *_002) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
+func (c *_002) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	_, err := requests.SyncSource(httpClient, models.SyncSourcesOptions{

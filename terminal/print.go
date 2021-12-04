@@ -1,22 +1,45 @@
 package terminal
 
 import (
-	"fmt"
 	"github.com/buger/goterm"
 )
 
-func UpdateStatus(operationName, status, message, link string, isTempLine bool) error {
-	// TODO: remove this when goterm is working. doesn't work for me... not sure why
-	fmt.Println(fmt.Printf("%s: %s (%s) - %s", goterm.Bold(operationName), status, message, goterm.Color(link, goterm.BLUE)))
-
-	_, err := goterm.Println("%s: %s (%s) - %s", goterm.Bold(operationName), status, message, goterm.Color(link, goterm.BLUE))
+func UpdateStatus(operationName, status, message, link string) error {
+	_, err := goterm.Println(goterm.Bold(operationName), ": ", status, " (", message, ") ", goterm.Color(link, goterm.BLUE))
 	if err != nil {
 		return err
 	}
 
-	if isTempLine {
-		goterm.MoveCursorUp(1)
+	goterm.MoveCursorUp(1)
+	goterm.Flush()
+	return nil
+}
+
+func UpdateFail(operationName, status, message, link string) error { // TODO FIX THE REST
+	_, err := goterm.Println("%s: %s (%s) - %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), message, goterm.Color(link, goterm.BLUE))
+	if err != nil {
+		return err
 	}
 
+	goterm.MoveCursorUp(1)
+	goterm.Flush()
+	return nil
+}
+
+func UpdateUnrecoverable(operationName, message, link string) error {
+	_, err := goterm.Println("%s: %s - %s", goterm.Bold(operationName), message, goterm.Color(link, goterm.BLUE))
+	if err != nil {
+		return err
+	}
+	goterm.Flush()
+	return nil
+}
+
+func StartingRun(operationName string) error {
+	_, err := goterm.Println(operationName, "...")
+	if err != nil {
+		return err
+	}
+	goterm.Flush()
 	return nil
 }
