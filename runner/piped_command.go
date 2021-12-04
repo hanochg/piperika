@@ -42,17 +42,10 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 		return waitErr
 	}
 
-	status := c.TriggerStateChange(ctx, state)
-	if status.Type == command.Unrecoverable {
-		return fmt.Errorf(status.Message)
-	}
-	err := terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD", false)
+	err := c.TriggerStateChange(ctx, state)
 	if err != nil {
 		return err
 	}
-
-	// Giving Pipelines time to digest the triggered request
-	time.Sleep(3 * time.Second)
 
 	return c.retryResolveState(ctx, state)
 }

@@ -24,7 +24,7 @@ func GetDirConfig() (*DirConfig, error) {
 		return nil, err
 	}
 	if config, ok := constDirConfig[dir]; !ok {
-		return nil, fmt.Errorf("working directory is not mapped, could not resolve pipeline to work against")
+		return nil, fmt.Errorf("working directory '%s' is not mapped, could not resolve pipeline to work against", dir)
 	} else {
 		return config, nil
 	}

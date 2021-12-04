@@ -16,3 +16,18 @@ const (
 	TimingOut  StatusCode = 4014
 	Creating   StatusCode = 4015
 )
+
+var StatusCodeNamesMap = map[StatusCode]string{
+	Queued:     "Queued",
+	Processing: "Processing",
+	Success:    "Success",
+	Failure:    "Failure",
+	Error:      "Error",
+	Waiting:    "Waiting",
+	Canceled:   "Canceled",
+	Unstable:   "Unstable",
+	Skipped:    "Skipped",
+	TimedOut:   "TimedOut",
+	TimingOut:  "TimingOut",
+	Creating:   "Creating",
+}

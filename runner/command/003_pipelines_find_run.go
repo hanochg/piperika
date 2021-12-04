@@ -30,15 +30,15 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	})
 	if err != nil {
 		return Status{
-			Type:    InProgress,
+			Type:    Unrecoverable,
 			Message: fmt.Sprintf("Failed fetching pipelines data: %v", err),
 		}
 	}
 	if len(pipeResp.Pipelines) == 0 {
 		return Status{
+			Type:            InProgress,
 			PipelinesStatus: "missing pipeline",
 			Message:         "Waiting for pipeline creation",
-			Type:            InProgress,
 		}
 	}
 	state.PipelineId = pipeResp.Pipelines[0].PipelineId
@@ -53,15 +53,15 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	})
 	if err != nil {
 		return Status{
-			Type:    InProgress,
+			Type:    Unrecoverable,
 			Message: fmt.Sprintf("Failed fetching pipeline runs data: %v", err),
 		}
 	}
 	if len(runResp.Runs) == 0 {
-		// Itai comment: not sure about that, runs handling should be in next step.
 		return Status{
-			Type:    InProgress,
-			Message: "No runs exist for this pipeline branch, triggering new run",
+			PipelinesStatus: "no runs exist",
+			Message:         "Waiting for run creation",
+			Type:            InProgress,
 		}
 	}
 
@@ -87,8 +87,9 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	if len(runResourceResp.Resources) == 0 {
 		return Status{
-			Type:    Failed,
-			Message: "No resources exist for the resolved pipeline run, triggering new run",
+			Type:            Failed,
+			PipelinesStatus: "triggering new run",
+			Message:         "No resources exist for the resolved pipeline run",
 		}
 	}
 
@@ -108,15 +109,17 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		runId, err := strconv.Atoi(runIdStr)
 		if err != nil {
 			return Status{
-				Type:    Failed,
-				Message: "Corrupted data for the resolved pipeline run, triggering new run",
+				Type:            Failed,
+				PipelinesStatus: "triggering new run",
+				Message:         "Corrupted data for the resolved pipeline run",
 			}
 		}
 		runNumber, err := strconv.Atoi(runNumbers[i])
 		if err != nil {
 			return Status{
-				Type:    Failed,
-				Message: "Corrupted data for the resolved pipeline run, triggering new run",
+				Type:            Failed,
+				PipelinesStatus: "triggering new run",
+				Message:         "Corrupted data for the resolved pipeline run",
 			}
 		}
 		if utils.Contains(activeRunIds, runId) {
@@ -139,7 +142,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 }
 
-func (c *_003) TriggerStateChange(ctx context.Context, state *PipedCommandState) Status {
+func (c *_003) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	pipeSteps, err := requests.GetPipelinesSteps(httpClient, models.GetPipelinesStepsOptions{
@@ -148,24 +151,15 @@ func (c *_003) TriggerStateChange(ctx context.Context, state *PipedCommandState)
 		Names:             utils.DefaultPipelinesStepNameToTrigger,
 	})
 	if err != nil {
-		return Status{
-			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed fetching pipeline steps: %v", err),
-		}
+		return fmt.Errorf("failed fetching pipeline steps: %w", err)
 	}
 	if len(pipeSteps.Steps) == 0 {
-		return Status{
-			Type:    Unrecoverable,
-			Message: fmt.Sprintf("No pipeline step called '%s'", utils.DefaultPipelinesStepNameToTrigger),
-		}
+		return fmt.Errorf("no pipeline step called '%s'", utils.DefaultPipelinesStepNameToTrigger)
 	}
 
 	err = requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)
 	if err != nil {
-		return Status{
-			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed triggering pipeline step '%s': %v", utils.DefaultPipelinesStepNameToTrigger, err),
-		}
+		return fmt.Errorf("failed triggering pipeline step '%s': %v", utils.DefaultPipelinesStepNameToTrigger, err)
 	}
 
 	// Giving Pipelines time to digest the request and create a new run
@@ -179,23 +173,14 @@ func (c *_003) TriggerStateChange(ctx context.Context, state *PipedCommandState)
 		SortOrder:   -1,
 	})
 	if err != nil {
-		return Status{
-			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed fetching pipeline runs: %v", err),
-		}
+		return fmt.Errorf("failed fetching pipeline runs: %v", err)
 	}
 
 	if len(runResp.Runs) == 0 {
-		return Status{
-			Type:    Unrecoverable,
-			Message: "No runs exist for the pipeline",
-		}
+		return fmt.Errorf("no runs exist for the pipeline")
 	}
 
 	state.RunId = runResp.Runs[0].RunId
 	state.RunNumber = runResp.Runs[0].RunNumber
-	return Status{
-		Type:    Done,
-		Message: "Successfully triggered new pipeline run",
-	}
+	return nil
 }

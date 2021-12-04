@@ -36,5 +36,5 @@ const (
 
 type Command interface {
 	ResolveState(ctx context.Context, state *PipedCommandState) Status
-	TriggerStateChange(ctx context.Context, state *PipedCommandState) Status
+	TriggerStateChange(ctx context.Context, state *PipedCommandState) error
 }

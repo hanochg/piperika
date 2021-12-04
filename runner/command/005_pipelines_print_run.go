@@ -27,7 +27,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	})
 	if err != nil {
 		return Status{
-			Type:    InProgress,
+			Type:    Unrecoverable,
 			Message: fmt.Sprintf("Failed fetching pipeline steps data for run id '%d': %v", state.RunId, err),
 		}
 	}
@@ -60,7 +60,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	_, err = requests.GetStepsTestReports(httpClient, models.StepsTestReportsOptions{StepIds: state.RunStepIdsCsv})
 	if err != nil {
 		return Status{
-			Type:    InProgress,
+			Type:    Unrecoverable,
 			Message: fmt.Sprintf("Failed fetching pipeline steps test reports for run id '%d': %v", state.RunId, err),
 		}
 	}
@@ -73,9 +73,6 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 }
 
-func (c *_005) TriggerStateChange(ctx context.Context, state *PipedCommandState) Status {
-	return Status{
-		Type:    Unrecoverable,
-		Message: "Timed out",
-	}
+func (c *_005) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
+	return fmt.Errorf("timed out")
 }

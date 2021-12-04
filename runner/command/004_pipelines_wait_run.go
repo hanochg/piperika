@@ -31,7 +31,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	})
 	if err != nil {
 		return Status{
-			Type:    InProgress,
+			Type:    Unrecoverable,
 			Message: fmt.Sprintf("Failed fetching pipeline steps data for run id '%d': %v", state.RunId, err),
 		}
 	}
@@ -55,22 +55,22 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	})
 	if err != nil {
 		return Status{
-			Type:    InProgress,
+			Type:    Unrecoverable,
 			Message: fmt.Sprintf("Failed fetching pipeline runs data: %v", err),
 		}
 	}
 	if len(runStatus.Runs) == 0 {
 		return Status{
-			Type:    InProgress,
-			Message: fmt.Sprintf("Could not resolve any runs for the pipeline"),
+			Type:            InProgress,
+			PipelinesStatus: "waiting for run",
+			Message:         fmt.Sprintf("Could not resolve any runs for the pipeline"),
 		}
 	}
 
-	if runStatus.Runs[0].StatusCode == models.Creating ||
-		runStatus.Runs[0].StatusCode == models.Waiting ||
-		runStatus.Runs[0].StatusCode == models.Processing {
+	statusCode := runStatus.Runs[0].StatusCode
+	if statusCode == models.Creating || statusCode == models.Waiting || statusCode == models.Processing {
 		return Status{
-			PipelinesStatus: "TBD Convert status code to string",
+			PipelinesStatus: models.StatusCodeNamesMap[statusCode],
 			Message: fmt.Sprintf("run %d started at %s is in progress",
 				runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt),
 			Type: InProgress,
@@ -79,14 +79,11 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	return Status{
 		Message: fmt.Sprintf("run %d started at %s and finished at %s with status %d",
-			runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt, runStatus.Runs[0].EndedAt, runStatus.Runs[0].StatusCode),
+			runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt, runStatus.Runs[0].EndedAt, statusCode),
 		Type: Done,
 	}
 }
 
-func (c *_004) TriggerStateChange(ctx context.Context, state *PipedCommandState) Status {
-	return Status{
-		Type:    Unrecoverable,
-		Message: "Timed out",
-	}
+func (c *_004) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
+	return fmt.Errorf("timed out")
 }

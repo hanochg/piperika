@@ -53,13 +53,11 @@ func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	return Status{
 		Message: fmt.Sprintf("git details:\ncurrent branch: %s\nlocal commit hash:  %s\nremote commit hash: %s",
 			branchName, localCommitHash, remoteCommitHash),
-		Type: Done,
+		PipelinesStatus: "git state is correct",
+		Type:            Done,
 	}
 }
 
-func (c *_001) TriggerStateChange(ctx context.Context, state *PipedCommandState) Status {
-	return Status{
-		Type:    Unrecoverable,
-		Message: "Timed out",
-	}
+func (c *_001) TriggerStateChange(ctx context.Context, state *PipedCommandState) error {
+	return fmt.Errorf("timed out")
 }
