@@ -10,28 +10,30 @@ func UpdateStatus(operationName, status, message, link string) error {
 		return err
 	}
 
-	goterm.MoveCursorUp(1)
 	goterm.Flush()
+	goterm.MoveCursorUp(1)
+
 	return nil
 }
 
 func UpdateFail(operationName, status, message, link string) error { // TODO FIX THE REST
-	_, err := goterm.Println("%s: %s (%s) - %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), message, goterm.Color(link, goterm.BLUE))
+	_, err := goterm.Println(goterm.Bold(operationName), ": ", goterm.Color(status, goterm.RED), " (", message, ") ", goterm.Color(link, goterm.BLUE))
 	if err != nil {
 		return err
 	}
 
-	goterm.MoveCursorUp(1)
 	goterm.Flush()
+	goterm.MoveCursorUp(1)
 	return nil
 }
 
 func UpdateUnrecoverable(operationName, message, link string) error {
-	_, err := goterm.Println("%s: %s - %s", goterm.Bold(operationName), message, goterm.Color(link, goterm.BLUE))
+	_, err := goterm.Println(goterm.Bold(operationName), ": ", message, " - ", goterm.Color(link, goterm.BLUE))
 	if err != nil {
 		return err
 	}
 	goterm.Flush()
+	goterm.MoveCursorUp(1)
 	return nil
 }
 
@@ -41,5 +43,7 @@ func StartingRun(operationName string) error {
 		return err
 	}
 	goterm.Flush()
+	goterm.MoveCursorUp(1)
+
 	return nil
 }
