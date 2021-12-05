@@ -7,6 +7,7 @@ import (
 	"github.com/hanochg/piperika/http/models"
 	"github.com/hanochg/piperika/http/requests"
 	"github.com/hanochg/piperika/utils"
+	"net/url"
 	"strconv"
 )
 
@@ -18,6 +19,7 @@ type _005 struct{}
 
 func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+	baseUiUrl := ctx.Value(utils.BaseUiUrl).(string)
 
 	// Get steps statuses
 	steps, err := requests.GetSteps(httpClient, models.GetStepsOptions{
@@ -45,6 +47,16 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		if step.StatusCode == models.Waiting ||
 			step.StatusCode == models.Processing {
 			processingSteps = append(processingSteps, step.Name)
+		}
+	}
+
+	if len(failedSteps) > 0 {
+		return Status{
+			PipelinesStatus: "Step Failed",
+			Message: fmt.Sprintf("Step(s) failed %s (Run %d)",
+				failedSteps, state.RunNumber),
+			Type: Unrecoverable,
+			Link: fmt.Sprintf("%s/myPipelines/default/access_build/%d/%s?branch=%s", baseUiUrl, state.RunNumber, failedSteps[0], url.PathEscape(state.GitBranch)),
 		}
 	}
 

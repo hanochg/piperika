@@ -46,8 +46,14 @@ func theAllMightyCommand(c *components.Context) error {
 	if err != nil {
 		return err
 	}
+
+	uiUrl, err := utils.GetUIBaseUrl(c)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Hour)
 	defer cancel()
+	ctx = context.WithValue(ctx, utils.BaseUiUrl, uiUrl)
 	ctx = context.WithValue(ctx, utils.HttpClientCtxKey, client)
 	ctx = context.WithValue(ctx, utils.DirConfigCtxKey, dirConfig)
 	return runner.RunPipe(ctx)

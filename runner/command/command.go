@@ -23,6 +23,7 @@ type Status struct {
 	PipelinesStatus string
 	Message         string
 	Type            StatusType
+	Link            string
 }
 
 type StatusType string

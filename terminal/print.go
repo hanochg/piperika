@@ -28,7 +28,7 @@ func UpdateFail(operationName, status, message, link string) error {
 }
 
 func UpdateUnrecoverable(operationName, message, link string) error {
-	_, err := goterm.Println(goterm.Bold(operationName), ": ", message, " - ", goterm.Color(link, goterm.BLUE))
+	_, err := goterm.Println(goterm.Bold(operationName), "\n", message, "\nLink: ", goterm.Color(link, goterm.BLUE))
 	if err != nil {
 		return err
 	}

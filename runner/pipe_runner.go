@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	shortBackoffConfig = backoffConfig{interval: 5 * time.Second, maxRetries: 60}   // 5 minutes
+	shortBackoffConfig = backoffConfig{interval: 5 * time.Second, maxRetries: 3}    // 5 minutes
 	longBackoffConfig  = backoffConfig{interval: 10 * time.Second, maxRetries: 360} // 1 hour
 
 	cmds = []pipedCommand{

@@ -2,7 +2,7 @@ package utils
 
 import "fmt"
 
-var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each directory instead of const
+var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each directory instead of const / or use pipeline yaml
 	"/access": {
 		PipelineName:      "access_build",
 		DefaultStep:       "trigger_all",
