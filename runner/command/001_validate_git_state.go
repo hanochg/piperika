@@ -20,7 +20,7 @@ func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
-			Message: fmt.Sprintf("failed resolving current git branch: %v", err),
+			Message: fmt.Sprintf("Failed resolving current git branch: %v", err),
 		}
 	}
 
@@ -28,36 +28,35 @@ func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
-			Message: fmt.Sprintf("failed resolving local git commit hash: %v", err),
+			Message: fmt.Sprintf("Failed resolving local git commit hash: %v", err),
 		}
 	}
 	remoteCommitHash, err := utils.GetCommitHash(branchName, true)
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
-			Message: fmt.Sprintf("failed resolving remote git commit hash: %v", err),
+			Message: fmt.Sprintf("Failed resolving remote git commit hash: %v", err),
 		}
 	}
 
 	if localCommitHash != remoteCommitHash {
 		return Status{
 			Type:    Unrecoverable,
-			Message: "local commit hash is different than remote, push your changes before triggering a build",
+			Message: "Local commit hash is different than remote, push your changes before triggering a build",
 		}
 	}
 
 	state.GitBranch = branchName
 	state.HeadCommitSha = remoteCommitHash
-	//state.HeadCommitSha = "b8cb635bf49ce48e6de66455b58bd374f6c84c65" //TODO only for tests
 
 	return Status{
-		Message: fmt.Sprintf("git details:\ncurrent branch: %s\nlocal commit hash:  %s\nremote commit hash: %s",
+		Message: fmt.Sprintf("Git details:\ncurrent branch: %s\nlocal commit hash:  %s\nremote commit hash: %s",
 			branchName, localCommitHash, remoteCommitHash),
 		PipelinesStatus: "git state is correct",
 		Type:            Done,
 	}
 }
 
-func (c *_001) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
+func (c *_001) TriggerOnFail(_ context.Context, _ *PipedCommandState) error {
 	return fmt.Errorf("timed out")
 }

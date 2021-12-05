@@ -36,7 +36,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if len(pipeResp.Pipelines) == 0 {
 		return Status{
 			Type:            InProgress,
-			PipelinesStatus: "missing pipeline",
+			PipelinesStatus: "Missing pipeline",
 			Message:         "Waiting for pipeline creation",
 		}
 	}
@@ -58,7 +58,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 	if len(runResp.Runs) == 0 {
 		return Status{
-			PipelinesStatus: "no runs exist",
+			PipelinesStatus: "There are no active runs",
 			Message:         "Waiting for run creation",
 			Type:            InProgress,
 		}
@@ -87,7 +87,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if len(runResourceResp.Resources) == 0 {
 		return Status{
 			Type:            Failed,
-			PipelinesStatus: "triggering new run",
+			PipelinesStatus: "Triggering new run",
 			Message:         "No resources exist for the resolved pipeline run",
 		}
 	}
@@ -109,7 +109,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		if err != nil {
 			return Status{
 				Type:            Failed,
-				PipelinesStatus: "triggering new run",
+				PipelinesStatus: "Triggering new run",
 				Message:         "Corrupted data for the resolved pipeline run",
 			}
 		}
@@ -117,7 +117,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		if err != nil {
 			return Status{
 				Type:            Failed,
-				PipelinesStatus: "triggering new run",
+				PipelinesStatus: "Triggering new run",
 				Message:         "Corrupted data for the resolved pipeline run",
 			}
 		}
@@ -137,7 +137,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	return Status{
 		Type:    Failed,
-		Message: "did not find any active runs, triggering new run",
+		Message: "Did not find any active runs, triggering new run",
 	}
 }
 
@@ -162,27 +162,5 @@ func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) erro
 		return fmt.Errorf("failed triggering pipeline step '%s': %v", dirConfig.DefaultStep, err)
 	}
 
-	// Itai commented the follow since we are running ResolveState again, so it's not longer required, please uncomment if I'm worng
-
-	//// Giving Pipelines time to digest the request and create a new run
-	//time.Sleep(3 * time.Second)
-	//
-	//runResp, err := requests.GetRuns(httpClient, models.GetRunsOptions{
-	//	PipelineIds: strconv.Itoa(state.PipelineId),
-	//	Limit:       1,
-	//	Light:       true,
-	//	SortBy:      "createdAt",
-	//	SortOrder:   -1,
-	//})
-	//if err != nil {
-	//	return fmt.Errorf("failed fetching pipeline runs: %v", err)
-	//}
-	//
-	//if len(runResp.Runs) == 0 {
-	//	return fmt.Errorf("no runs exist for the pipeline")
-	//}
-	//
-	//state.RunId = runResp.Runs[0].RunId
-	//state.RunNumber = runResp.Runs[0].RunNumber
 	return nil
 }

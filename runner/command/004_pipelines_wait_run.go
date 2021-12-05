@@ -19,13 +19,7 @@ type _004 struct{}
 
 func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	// TODO - as the run steps don't change, there's no need ot get them in each cycle
-	// we need to separate GetSteps from the GetRuns cycle
 	stepsResp, err := requests.GetSteps(httpClient, models.GetStepsOptions{
-		// TODO: shouldn't this also have run number? otherwise it's the steps of the last run and not the intended run
-		// Hanoch: run id is points to a specific run number in a specific pipeline (e.g access_build under RT repo),
-		// each run gets a run id, I added the run number just for printing it to the console (as it's user friendly)
-		//
 		RunIds: strconv.Itoa(state.RunId),
 		Limit:  100,
 	})
@@ -37,7 +31,6 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 
 	if len(stepsResp.Steps) == 0 {
-		// Itai comment - Do we want to wait here or fail?
 		return Status{
 			Type:    Failed,
 			Message: fmt.Sprintf("No steps for pipeline run id '%d'", state.RunId),
@@ -71,19 +64,19 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if statusCode == models.Creating || statusCode == models.Waiting {
 		return Status{
 			PipelinesStatus: models.StatusCodeNamesMap[statusCode],
-			Message: fmt.Sprintf("run %d started at %s is in initializing",
+			Message: fmt.Sprintf("Run %d started at %s is in initializing",
 				runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt),
 			Type: Done,
 		}
 	}
 
 	return Status{
-		Message: fmt.Sprintf("run %d started at %s and finished at %s with status %d",
+		Message: fmt.Sprintf("Run %d started at %s and finished at %s with status %d",
 			runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt, runStatus.Runs[0].EndedAt, statusCode),
 		Type: Done,
 	}
 }
 
-func (c *_004) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
+func (c *_004) TriggerOnFail(_ context.Context, _ *PipedCommandState) error {
 	return fmt.Errorf("timed out")
 }

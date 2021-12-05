@@ -28,6 +28,11 @@ var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each di
 		DefaultStep:       "access_go_client",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
+	"/go-base-application": {
+		PipelineName:      "go_base_application_build",
+		DefaultStep:       "go_base_application",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
 }
 
 type DirConfig struct {
