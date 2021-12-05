@@ -6,15 +6,15 @@ import (
 	"github.com/jfrog/jfrog-cli-core/artifactory/utils"
 	"github.com/jfrog/jfrog-cli-core/plugins"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
+	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/http/jfroghttpclient"
 	"github.com/jfrog/jfrog-client-go/utils/io/httputils"
-	"strings"
+	"net/url"
+	"path"
 )
 
 const (
-	artifactoryUrlPart = "artifactory"
-	pipelineUrlPart    = "pipelines"
-	apiV1              = "/api/v1"
+	apiV1 = "/api/v1"
 )
 
 type ClientOptions struct {
@@ -39,39 +39,25 @@ func NewPipelineHttp(c *components.Context) (*pipelineHttpClient, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	url, err := getPipelineUrlFromArtifactoryUrl(details.ArtifactoryUrl)
+	baseUrl, err := getBaseUrlPath(details)
 	if err != nil {
 		return nil, err
 	}
-
 	return &pipelineHttpClient{
 		client:  manager.Client(),
 		details: config.CreateHttpClientDetails(),
-		baseUrl: url,
+		baseUrl: baseUrl,
 	}, nil
 }
 
-func getPipelineUrlFromArtifactoryUrl(artifactoryUrl string) (string, error) {
-	urlParts := strings.Split(artifactoryUrl, "/")
-	if len(urlParts) <= 1 {
-		return "", fmt.Errorf("unexpected artifactory URL '%s'", artifactoryUrl)
+func getBaseUrlPath(details *config.ServerDetails) (string, error) {
+	baseUrl, err := url.Parse(details.PipelinesUrl)
+	if err != nil {
+		return "", err
 	}
-	urlParts = removeTrailingSlash(urlParts)
-	if urlParts[len(urlParts)-1] != artifactoryUrlPart {
-		return "", fmt.Errorf("unexpected artifactory URL %s that doesn't ends with %s", artifactoryUrl, artifactoryUrlPart)
-	}
-	urlParts[len(urlParts)-1] = pipelineUrlPart
 
-	urlWithoutArtifactory := strings.Join(urlParts, "/")
-	return urlWithoutArtifactory + apiV1, nil
-}
-
-func removeTrailingSlash(urlParts []string) []string {
-	if urlParts[len(urlParts)-1] == "" {
-		urlParts = urlParts[:len(urlParts)-1]
-	}
-	return urlParts
+	baseUrl.Path = path.Join(baseUrl.Path, apiV1)
+	return baseUrl.String(), nil
 }
 
 type pipelineHttpClient struct {

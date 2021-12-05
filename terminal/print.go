@@ -16,7 +16,7 @@ func UpdateStatus(operationName, status, message, link string) error {
 	return nil
 }
 
-func UpdateFail(operationName, status, message, link string) error { // TODO FIX THE REST
+func UpdateFail(operationName, status, message, link string) error {
 	_, err := goterm.Println(goterm.Bold(operationName), ": ", goterm.Color(status, goterm.RED), " (", message, ") ", goterm.Color(link, goterm.BLUE))
 	if err != nil {
 		return err
