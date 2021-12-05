@@ -5,16 +5,34 @@ import "fmt"
 var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each directory instead of const
 	"/access": {
 		PipelineName:      "access_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/access/server": {
+		PipelineName:      "access_build",
+		DefaultStep:       "access_server",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/access/client": {
+		PipelineName:      "access_build",
+		DefaultStep:       "access_client",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/access-nodejs-client": {
+		PipelineName:      "access_build",
+		DefaultStep:       "access_nodejs_client",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 	"/access-go-client": {
 		PipelineName:      "access_build",
+		DefaultStep:       "access_go_client",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 }
 
 type DirConfig struct {
 	PipelineName      string
+	DefaultStep       string
 	PipelinesSourceId int
 }
 

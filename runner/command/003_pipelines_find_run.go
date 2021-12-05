@@ -9,7 +9,6 @@ import (
 	"github.com/hanochg/piperika/utils"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func New003PipelinesFindRun() *_003 {
@@ -144,43 +143,46 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
 
 	pipeSteps, err := requests.GetPipelinesSteps(httpClient, models.GetPipelinesStepsOptions{
 		PipelineIds:       strconv.Itoa(state.PipelineId),
 		PipelineSourceIds: strconv.Itoa(state.PipelinesSourceId),
-		Names:             utils.DefaultPipelinesStepNameToTrigger,
+		Names:             dirConfig.DefaultStep,
 	})
 	if err != nil {
 		return fmt.Errorf("failed fetching pipeline steps: %w", err)
 	}
 	if len(pipeSteps.Steps) == 0 {
-		return fmt.Errorf("no pipeline step called '%s'", utils.DefaultPipelinesStepNameToTrigger)
+		return fmt.Errorf("no pipeline step called '%s'", dirConfig.DefaultStep)
 	}
 
 	err = requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)
 	if err != nil {
-		return fmt.Errorf("failed triggering pipeline step '%s': %v", utils.DefaultPipelinesStepNameToTrigger, err)
+		return fmt.Errorf("failed triggering pipeline step '%s': %v", dirConfig.DefaultStep, err)
 	}
 
-	// Giving Pipelines time to digest the request and create a new run
-	time.Sleep(3 * time.Second)
+	// Itai commented the follow since we are running ResolveState again, so it's not longer required, please uncomment if I'm worng
 
-	runResp, err := requests.GetRuns(httpClient, models.GetRunsOptions{
-		PipelineIds: strconv.Itoa(state.PipelineId),
-		Limit:       1,
-		Light:       true,
-		SortBy:      "createdAt",
-		SortOrder:   -1,
-	})
-	if err != nil {
-		return fmt.Errorf("failed fetching pipeline runs: %v", err)
-	}
-
-	if len(runResp.Runs) == 0 {
-		return fmt.Errorf("no runs exist for the pipeline")
-	}
-
-	state.RunId = runResp.Runs[0].RunId
-	state.RunNumber = runResp.Runs[0].RunNumber
+	//// Giving Pipelines time to digest the request and create a new run
+	//time.Sleep(3 * time.Second)
+	//
+	//runResp, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+	//	PipelineIds: strconv.Itoa(state.PipelineId),
+	//	Limit:       1,
+	//	Light:       true,
+	//	SortBy:      "createdAt",
+	//	SortOrder:   -1,
+	//})
+	//if err != nil {
+	//	return fmt.Errorf("failed fetching pipeline runs: %v", err)
+	//}
+	//
+	//if len(runResp.Runs) == 0 {
+	//	return fmt.Errorf("no runs exist for the pipeline")
+	//}
+	//
+	//state.RunId = runResp.Runs[0].RunId
+	//state.RunNumber = runResp.Runs[0].RunNumber
 	return nil
 }
