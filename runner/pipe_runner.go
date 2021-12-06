@@ -13,11 +13,11 @@ var (
 	longBackoffConfig   = backoffConfig{interval: 10 * time.Second, maxRetries: 360} // 1 hour
 
 	cmds = []pipedCommand{
-		newRetryingPipedCommand("Validate git state", command.New001ValidateGitState(), mediumBackoffConfig),
-		newRetryingPipedCommand("Sync pipelines sources", command.New002PipelinesSourcesBranchSync(), mediumBackoffConfig),
-		newRetryingPipedCommand("Find or trigger active run", command.New003PipelinesFindRun(), shortBackoffConfig),
-		newRetryingPipedCommand("Wait for run to finish", command.New004PipelinesWaitRun(), longBackoffConfig),
-		newRetryingPipedCommand("Print run results", command.New005PipelinesPrintRun(), longBackoffConfig),
+		newRetryingPipedCommand("Validate git state", "timeout", command.New001ValidateGitState(), mediumBackoffConfig),
+		newRetryingPipedCommand("Wait for syncing pipelines sources", "Sync pipelines sources", command.New002PipelinesSourcesBranchSync(), mediumBackoffConfig),
+		newRetryingPipedCommand("Find active run", "Trigger a run", command.New003PipelinesFindRun(), shortBackoffConfig),
+		newRetryingPipedCommand("Wait for run to finish", "timeout", command.New004PipelinesWaitRun(), longBackoffConfig),
+		newRetryingPipedCommand("Print run results", "timeout", command.New005PipelinesPrintRun(), longBackoffConfig),
 	}
 )
 

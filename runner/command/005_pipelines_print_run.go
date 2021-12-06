@@ -20,28 +20,13 @@ type _005 struct{}
 
 func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	runCompleted := false
 
-	runStatus, err := requests.GetRuns(httpClient, models.GetRunsOptions{
-		RunIds: strconv.Itoa(state.RunId),
-	})
+	runCompleted, err := isRunCompleted(httpClient, state)
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed fetching pipeline runs data: %v", err),
+			Message: err.Error(),
 		}
-	}
-	if len(runStatus.Runs) == 0 {
-		return Status{
-			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed fetching pipeline runs data: %v", err),
-		}
-	}
-
-	statusCode := runStatus.Runs[0].StatusCode
-	if statusCode != models.Creating && statusCode != models.Waiting && statusCode != models.Processing {
-		// Run completed
-		runCompleted = true
 	}
 
 	// Get steps statuses
@@ -88,7 +73,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	testsFailureOutput, err := c.createTestReport(httpClient, state, stepsIdToNames)
+	testsFailureOutput, err := createTestReport(httpClient, state, stepsIdToNames)
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
@@ -107,7 +92,22 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 }
 
-func (c *_005) createTestReport(httpClient http.PipelineHttpClient, state *PipedCommandState, stepsIdToNames map[int]string) (string, error) {
+func isRunCompleted(httpClient http.PipelineHttpClient, state *PipedCommandState) (bool, error) {
+	runStatus, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+		RunIds: strconv.Itoa(state.RunId),
+	})
+	if err != nil {
+		return false, fmt.Errorf("failed fetching pipeline runs data: %v", err)
+	}
+	if len(runStatus.Runs) == 0 {
+		return false, fmt.Errorf("failed fetching pipeline runs data: %v", err)
+	}
+
+	statusCode := runStatus.Runs[0].StatusCode
+	return statusCode != models.Creating && statusCode != models.Waiting && statusCode != models.Processing, nil
+}
+
+func createTestReport(httpClient http.PipelineHttpClient, state *PipedCommandState, stepsIdToNames map[int]string) (string, error) {
 	testReports, err := requests.GetStepsTestReports(httpClient, models.StepsTestReportsOptions{StepIds: state.RunStepIdsCsv})
 	if err != nil {
 		return "", err

@@ -5,45 +5,39 @@ import (
 )
 
 func UpdateStatus(operationName, status, message, link string) error {
-	_, err := goterm.Println(goterm.Bold(operationName), ": ", status, " (", message, ") ", goterm.Color(link, goterm.BLUE))
-	if err != nil {
-		return err
-	}
-
-	goterm.Flush()
-	goterm.MoveCursorUp(1)
-
-	return nil
+	return replaceLine("%s: %s (%s) %s", goterm.Bold(operationName), status, message, goterm.Color(link, goterm.BLUE))
 }
 
 func UpdateFail(operationName, status, message, link string) error {
-	_, err := goterm.Println(goterm.Bold(operationName), ": ", goterm.Color(status, goterm.RED), " (", message, ") ", goterm.Color(link, goterm.BLUE))
-	if err != nil {
-		return err
-	}
-
-	goterm.Flush()
-	goterm.MoveCursorUp(1)
-	return nil
+	return replaceLine("%s: %s (%s) %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), message, goterm.Color(link, goterm.BLUE))
 }
 
 func UpdateUnrecoverable(operationName, message, link string) error {
-	_, err := goterm.Println(goterm.Bold(operationName), "\n", message, "\nLink: ", goterm.Color(link, goterm.BLUE))
-	if err != nil {
-		return err
+	return replaceLine("%s\n%s\nLink: %s", goterm.Bold(operationName), message, goterm.Color(link, goterm.BLUE))
+}
+
+func DoneMessage(operationName, message, link string) error {
+	if message == "" {
+		return nil
 	}
-	goterm.Flush()
-	goterm.MoveCursorUp(1)
-	return nil
+	return replaceLine("%s\n%s\nLink: %s", goterm.Bold(operationName), message, goterm.Color(link, goterm.BLUE))
 }
 
 func StartingRun(operationName string) error {
-	_, err := goterm.Println(operationName, "...")
+	return replaceLine("%s...", operationName)
+}
+
+func replaceLine(format string, a ...interface{}) error {
+	_, err := goterm.Print(goterm.ResetLine(""))
 	if err != nil {
 		return err
 	}
+	_, err = goterm.Printf(format, a...)
+	if err != nil {
+		return err
+	}
+
 	goterm.Flush()
-	goterm.MoveCursorUp(1)
 
 	return nil
 }

@@ -60,19 +60,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	statusCode := runStatus.Runs[0].StatusCode
-	if statusCode == models.Creating || statusCode == models.Waiting {
-		return Status{
-			PipelinesStatus: models.StatusCodeNamesMap[statusCode],
-			Message: fmt.Sprintf("Run %d started at %s is in initializing",
-				runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt),
-			Type: Done,
-		}
-	}
-
 	return Status{
-		Message: fmt.Sprintf("Run %d started at %s and finished at %s with status %d",
-			runStatus.Runs[0].RunNumber, runStatus.Runs[0].StartedAt, runStatus.Runs[0].EndedAt, statusCode),
 		Type: Done,
 	}
 }

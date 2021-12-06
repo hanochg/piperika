@@ -23,14 +23,16 @@ type backoffConfig struct {
 type retryingPipedCommand struct {
 	command.Command
 	operationName string
+	failState     string
 	backoffConfig
 }
 
-func newRetryingPipedCommand(operationName string, cmd command.Command, backoffConfig backoffConfig) *retryingPipedCommand {
+func newRetryingPipedCommand(operationName, failState string, cmd command.Command, backoffConfig backoffConfig) *retryingPipedCommand {
 	return &retryingPipedCommand{
 		Command:       cmd,
 		backoffConfig: backoffConfig,
 		operationName: operationName,
+		failState:     failState,
 	}
 }
 
@@ -47,7 +49,12 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 		return waitErr
 	}
 
-	err := c.TriggerOnFail(ctx, state)
+	err := terminal.UpdateFail(c.operationName, c.failState, "", "")
+	if err != nil {
+		return err
+	}
+
+	err = c.TriggerOnFail(ctx, state)
 	if err != nil {
 		return err
 	}
@@ -62,26 +69,30 @@ func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *com
 
 			switch status.Type {
 			case command.InProgress:
-				err := terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, "TBD")
+				err := terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, status.Link)
 				if err != nil {
-					return err
+					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
 				}
 				return fmt.Errorf("retrying %s", c.operationName)
 			case command.Failed:
-				err := terminal.UpdateFail(c.operationName, status.PipelinesStatus, status.Message, "TBD")
+				err := terminal.UpdateFail(c.operationName, status.PipelinesStatus, status.Message, status.Link)
 				if err != nil {
-					return err
+					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
 				}
 
 				return backoff.Permanent(fmt.Errorf(status.Message))
 			case command.Unrecoverable:
-				err := terminal.UpdateUnrecoverable(c.operationName, status.Message, "TBD")
+				err := terminal.UpdateUnrecoverable(c.operationName, status.Message, status.Link)
 				if err != nil {
-					return err
+					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
 				}
 
 				return backoff.Permanent(errors.Wrap(&unrecoverableError{}, status.Message))
 			case command.Done:
+				err := terminal.DoneMessage(c.operationName, status.Message, status.Link)
+				if err != nil {
+					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
+				}
 				return nil
 			default:
 				panic("Unexpected command type")

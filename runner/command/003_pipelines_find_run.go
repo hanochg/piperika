@@ -130,8 +130,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	if len(activeRunIds) != 0 && state.RunId != -1 {
 		return Status{
-			Type:    Done,
-			Message: "Found an active run id",
+			Type: Done,
 		}
 	}
 
