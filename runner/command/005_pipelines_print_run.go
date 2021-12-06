@@ -70,10 +70,10 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 			goterm.Color("Succeeded:", goterm.GREEN), len(successSteps),
 			goterm.Color("Failed:", goterm.RED), len(failedSteps))
 		if len(processingSteps) != 0 {
-			outputMsg += fmt.Sprintf(" | 🥁 Processing steps: %s 🥁", strings.Join(processingSteps, ","))
+			outputMsg += fmt.Sprintf(" | Processing steps: 🥁 %s 🥁", strings.Join(processingSteps, ","))
 		}
 		if len(failedSteps) != 0 {
-			outputMsg += fmt.Sprintf(" | 💩 Failed steps: %s 💩", goterm.Color(strings.Join(failedSteps, ","), goterm.RED))
+			outputMsg += fmt.Sprintf(" | Failed steps: 💩 %s 💩", goterm.Color(strings.Join(failedSteps, ","), goterm.RED))
 		}
 
 		return Status{
