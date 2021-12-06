@@ -76,7 +76,7 @@ func replaceLine(format string, a ...interface{}) error {
 
 var progressChan chan struct{}
 
-var animation = [...]string{"◴", "◷", "◶", "◵"}
+var animation = [...]string{"🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"}
 
 func progressLine(format string, a ...interface{}) {
 	stopProcess()
@@ -86,7 +86,7 @@ func progressLine(format string, a ...interface{}) {
 		for i := 0; ; i++ {
 			select {
 			case <-time.After(time.Millisecond * 100):
-				err := replaceLine(animation[i%len(animation)]+" "+format, a...)
+				err := replaceLine(animation[i%len(animation)]+format, a...)
 				if err != nil {
 					fmt.Printf("Error printing %v", err)
 					return
