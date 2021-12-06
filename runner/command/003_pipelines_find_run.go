@@ -15,7 +15,9 @@ func New003PipelinesFindRun() *_003 {
 	return &_003{}
 }
 
-type _003 struct{}
+type _003 struct {
+	runTriggered bool
+}
 
 func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
@@ -128,9 +130,14 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
+	msg := fmt.Sprintf("Run #%d was found", state.RunNumber)
+	if c.runTriggered {
+		msg = fmt.Sprintf("Run #%d was triggered", state.RunNumber)
+	}
 	if len(activeRunIds) != 0 && state.RunId != -1 {
 		return Status{
-			Type: Done,
+			Message: msg,
+			Type:    Done,
 		}
 	}
 
@@ -155,6 +162,6 @@ func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) erro
 	if len(pipeSteps.Steps) == 0 {
 		return fmt.Errorf("no pipeline step called '%s'", dirConfig.DefaultStep)
 	}
-
+	c.runTriggered = true
 	return requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)
 }

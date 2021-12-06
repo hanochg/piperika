@@ -18,22 +18,22 @@ func UpdateStatus(operationName, status, message, link string) error {
 func UpdateFail(operationName, status, message, link string) error {
 	msg := ""
 	if message != "" {
-		msg = fmt.Sprintf("%s: %s (%s) %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), message, goterm.Color(link, goterm.BLUE))
+		msg = fmt.Sprintf("%s: %s (%s) %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), message, link)
 	} else {
-		msg = fmt.Sprintf("%s: %s %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), goterm.Color(link, goterm.BLUE))
+		msg = fmt.Sprintf("%s: %s %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), link)
 	}
 	return replaceLine(msg)
 }
 
 func UpdateUnrecoverable(operationName, message, link string) error {
-	return replaceLine("%s\n%s\nLink: %s", goterm.Bold(operationName), message, goterm.Color(link, goterm.BLUE))
+	return replaceLine("%s\n%s\nLink: %s", goterm.Bold(operationName), message, link)
 }
 
 func DoneMessage(operationName, message, link string) error {
 	if message == "" {
 		return nil
 	}
-	return replaceLine("%s\n%s\nLink: %s", goterm.Bold(operationName), message, goterm.Color(link, goterm.BLUE))
+	return replaceLine("%s\n%s\nLink: %s", goterm.Bold(operationName), message, link)
 }
 
 func StartingRun(operationName string) error {

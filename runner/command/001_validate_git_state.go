@@ -50,9 +50,8 @@ func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	state.HeadCommitSha = remoteCommitHash
 
 	return Status{
-		PipelinesStatus: "info",
-		Message:         fmt.Sprintf("Running on branch %s with Git commit SHA %s", state.GitBranch, state.HeadCommitSha),
-		Type:            Done,
+		Message: fmt.Sprintf("Git remote and local commit SHA are aligned, Git commit SHA %s", state.HeadCommitSha),
+		Type:    Done,
 	}
 }
 

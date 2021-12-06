@@ -79,12 +79,13 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		return Status{
 			Type:            InProgress,
 			PipelinesStatus: syncStatus.LastSyncStatusCode.StatusCodeName(),
-			Message:         "pipelines is still syncing your branch to last commit hash",
+			Message:         "Pipelines is still syncing your branch to last commit hash",
 		}
 	}
 
 	return Status{
-		Type: Done,
+		Message: fmt.Sprintf("Pipelines branch %s is synced", state.GitBranch),
+		Type:    Done,
 	}
 }
 

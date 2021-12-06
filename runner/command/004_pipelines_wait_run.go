@@ -61,6 +61,8 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 
 	return Status{
+		Message: fmt.Sprintf("Watching run #%d with %d steps, current run status %s",
+			state.RunNumber, len(stepsResp.Steps), runStatus.Runs[0].StatusCode.StatusCodeName()),
 		Type: Done,
 	}
 }

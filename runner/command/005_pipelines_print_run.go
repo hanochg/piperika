@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/buger/goterm"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/http/models"
 	"github.com/hanochg/piperika/http/requests"
 	"github.com/hanochg/piperika/utils"
-	"net/url"
 	"strconv"
 	"strings"
 )
@@ -21,6 +21,7 @@ type _005 struct{}
 
 func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
 	baseUiUrl := ctx.Value(utils.BaseUiUrl).(string)
 
 	runStatusCode, err := runStatus(httpClient, state)
@@ -63,9 +64,15 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	// Following statuses are the statuses you can receive from [creating a brand-new run] to [Run Processing]
 	isRunComplete := runStatusCode != models.Ready && runStatusCode != models.Creating && runStatusCode != models.Waiting && runStatusCode != models.Processing
 	if !(isRunComplete) {
-		outputMsg := fmt.Sprintf("Run number %d - Completed %d out of %d. Steps (InProgress/Succeed/Failed/Total) %d/%d/%d/%d",
-			state.RunNumber, len(failedSteps)+len(successSteps), len(steps.Steps), len(processingSteps),
-			len(successSteps), len(failedSteps), len(steps.Steps))
+		outputMsg := fmt.Sprintf("Run number %d - Completed %d out of %d | %s %d, %s %d, %s %d, %s %d",
+			state.RunNumber, len(failedSteps)+len(successSteps), len(steps.Steps),
+			goterm.Color("Processing:", goterm.YELLOW), len(processingSteps),
+			goterm.Color("Succeeded:", goterm.GREEN), len(successSteps),
+			goterm.Color("Failed:", goterm.RED), len(failedSteps),
+			goterm.Color("Total:", goterm.MAGENTA), len(steps.Steps))
+		if len(failedSteps) != 0 {
+			outputMsg += fmt.Sprintf(", Processing steps: %s", strings.Join(processingSteps, ","))
+		}
 		if len(failedSteps) != 0 {
 			outputMsg += fmt.Sprintf(", Failed steps: %s", strings.Join(failedSteps, ","))
 		}
@@ -85,19 +92,25 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	outputStr := fmt.Sprintf("Run %d was completed with status %s - (InProgress/Succeed/Failed) %d/%d/%d.",
-		state.RunNumber, runStatusCode.StatusCodeName(), len(steps.Steps), len(failedSteps), len(successSteps))
+	outputMsg := fmt.Sprintf("Run %d was completed with status %s | %s %d, %s %d, %s %d, %s %d",
+		state.RunNumber, runStatusCode.StatusCodeName(),
+		goterm.Color("Processing:", goterm.YELLOW), len(processingSteps),
+		goterm.Color("Succeeded:", goterm.GREEN), len(successSteps),
+		goterm.Color("Failed:", goterm.RED), len(failedSteps),
+		goterm.Color("Total:", goterm.MAGENTA), len(steps.Steps))
 	if len(failedSteps) != 0 {
-		outputStr += fmt.Sprintf("\nFailed steps: %s", strings.Join(failedSteps, ","))
+		outputMsg += fmt.Sprintf("\nFailed steps: %s",
+			goterm.Color(strings.Join(failedSteps, ","), goterm.RED))
 	}
 	if testsFailureOutput != "" {
-		outputStr += fmt.Sprintf("\nTests results: %s", testsFailureOutput)
+		outputMsg += fmt.Sprintf("\nTests results: %s", testsFailureOutput)
 	}
 
 	return Status{
-		Message: outputStr,
-		Link:    fmt.Sprintf("%s/myPipelines/default/access_build/%d?branch=%v", baseUiUrl, state.RunNumber, url.PathEscape(state.GitBranch)),
-		Type:    Done,
+		Message: outputMsg,
+		Link: fmt.Sprintf("%s\n",
+			utils.GetPipelinesRunURL(baseUiUrl, dirConfig.PipelineName, dirConfig.DefaultStep, state.RunNumber, state.GitBranch)),
+		Type: Done,
 	}
 }
 
