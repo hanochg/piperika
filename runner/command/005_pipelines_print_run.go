@@ -97,7 +97,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		goterm.Color("Succeeded:", goterm.GREEN), len(successSteps),
 		goterm.Color("Failed:", goterm.RED), len(failedSteps))
 	if len(failedSteps) != 0 {
-		outputMsg += fmt.Sprintf("\n Failed steps: 💩 %s 💩",
+		outputMsg += fmt.Sprintf("\nFailed steps: 💩 %s 💩",
 			goterm.Color(strings.Join(failedSteps, ","), goterm.RED))
 	}
 	if testsFailureOutput != "" {
