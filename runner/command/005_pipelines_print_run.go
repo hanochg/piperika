@@ -8,6 +8,7 @@ import (
 	"github.com/hanochg/piperika/http/models"
 	"github.com/hanochg/piperika/http/requests"
 	"github.com/hanochg/piperika/utils"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -20,6 +21,7 @@ type _005 struct{}
 
 func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+	baseUiUrl := ctx.Value(utils.BaseUiUrl).(string)
 
 	runStatusCode, err := runStatus(httpClient, state)
 	if err != nil {
@@ -71,6 +73,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 			PipelinesStatus: "processing",
 			Message:         outputMsg,
 			Type:            InProgress,
+			Link:            fmt.Sprintf("%s/myPipelines/default/access_build/%d/%s?branch=%s", baseUiUrl, state.RunNumber, failedSteps[0], url.PathEscape(state.GitBranch)),
 		}
 	}
 
