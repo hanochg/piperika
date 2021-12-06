@@ -36,8 +36,8 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if len(pipeResp.Pipelines) == 0 {
 		return Status{
 			Type:            InProgress,
-			PipelinesStatus: "Missing pipeline",
-			Message:         "Waiting for pipeline creation",
+			PipelinesStatus: "missing pipeline",
+			Message:         "waiting for pipeline creation",
 		}
 	}
 	state.PipelineId = pipeResp.Pipelines[0].PipelineId
@@ -53,7 +53,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed fetching pipeline runs data: %v", err),
+			Message: fmt.Sprintf("failed fetching pipeline runs data: %v", err),
 		}
 	}
 	if len(runResp.Runs) == 0 {
@@ -80,15 +80,15 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if err != nil {
 		return Status{
 			Type:    InProgress,
-			Message: fmt.Sprintf("Failed fetching run resources data: %v", err),
+			Message: fmt.Sprintf("failed fetching run resources data: %v", err),
 		}
 	}
 
 	if len(runResourceResp.Resources) == 0 {
 		return Status{
 			Type:            Failed,
-			PipelinesStatus: "Triggering new run",
-			Message:         "No resources exist for the resolved pipeline run",
+			PipelinesStatus: "triggering new run",
+			Message:         "no resources exist for the resolved pipeline run",
 		}
 	}
 
@@ -109,16 +109,16 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		if err != nil {
 			return Status{
 				Type:            Failed,
-				PipelinesStatus: "Triggering new run",
-				Message:         "Corrupted data for the resolved pipeline run",
+				PipelinesStatus: "triggering new run",
+				Message:         fmt.Sprintf("corrupted data for the resolved pipeline run, err %v", err),
 			}
 		}
 		runNumber, err := strconv.Atoi(runNumbers[i])
 		if err != nil {
 			return Status{
 				Type:            Failed,
-				PipelinesStatus: "Triggering new run",
-				Message:         "Corrupted data for the resolved pipeline run",
+				PipelinesStatus: "triggering new run",
+				Message:         fmt.Sprintf("corrupted data for the resolved pipeline run, err %v", err),
 			}
 		}
 		if utils.Contains(activeRunIds, runId) {
@@ -136,7 +136,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	return Status{
 		Type:    Failed,
-		Message: "Did not find any active runs, triggering new run",
+		Message: "did not find any active runs, triggering new run",
 	}
 }
 

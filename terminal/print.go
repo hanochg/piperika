@@ -1,15 +1,28 @@
 package terminal
 
 import (
+	"fmt"
 	"github.com/buger/goterm"
 )
 
 func UpdateStatus(operationName, status, message, link string) error {
-	return replaceLine("%s: %s (%s) %s", goterm.Bold(operationName), status, message, goterm.Color(link, goterm.BLUE))
+	msg := ""
+	if message != "" {
+		msg = fmt.Sprintf("%s: %s (%s) %s", goterm.Bold(operationName), status, message, goterm.Color(link, goterm.BLUE))
+	} else {
+		msg = fmt.Sprintf("%s: %s %s", goterm.Bold(operationName), status, goterm.Color(link, goterm.BLUE))
+	}
+	return replaceLine(msg)
 }
 
 func UpdateFail(operationName, status, message, link string) error {
-	return replaceLine("%s: %s (%s) %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), message, goterm.Color(link, goterm.BLUE))
+	msg := ""
+	if message != "" {
+		msg = fmt.Sprintf("%s: %s (%s) %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), message, goterm.Color(link, goterm.BLUE))
+	} else {
+		msg = fmt.Sprintf("%s: %s %s", goterm.Bold(operationName), goterm.Color(status, goterm.RED), goterm.Color(link, goterm.BLUE))
+	}
+	return replaceLine(msg)
 }
 
 func UpdateUnrecoverable(operationName, message, link string) error {

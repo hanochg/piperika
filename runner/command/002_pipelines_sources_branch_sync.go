@@ -34,8 +34,8 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if len(syncStatusResp.SyncStatuses) == 0 {
 		return Status{
 			Type:            Failed,
-			PipelinesStatus: "Triggering sync",
-			Message:         "Could not find any pipeline sync data for the branch",
+			PipelinesStatus: "triggering sync",
+			Message:         "could not find any pipeline sync data for the branch",
 		}
 	}
 
@@ -43,8 +43,8 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if !syncStatus.IsSyncing && syncStatus.LastSyncStatusCode != models.Success {
 		return Status{
 			Type:            Failed,
-			PipelinesStatus: "Triggering sync",
-			Message:         "Pipeline sync for the branch has already run and failed, triggering new sync",
+			PipelinesStatus: "triggering sync",
+			Message:         "pipeline sync for the branch has already run and failed, triggering new sync",
 		}
 	}
 
@@ -55,7 +55,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed fetching pipeline resources data: %v", err),
+			Message: fmt.Sprintf("failed fetching pipeline resources data: %v", err),
 		}
 	}
 
@@ -63,23 +63,23 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		return Status{
 			Type:            InProgress,
 			PipelinesStatus: "Waiting resources",
-			Message:         fmt.Sprintf("No resources for version id '%d' for branch '%s'", syncStatus.ResourceVersionId, state.GitBranch),
+			Message:         fmt.Sprintf("no resources for version id '%d' for branch '%s'", syncStatus.ResourceVersionId, state.GitBranch),
 		}
 	}
 
 	if resVersions.Resources[0].ContentPropertyBag.CommitSha != state.HeadCommitSha {
 		return Status{
 			Type:            Failed,
-			PipelinesStatus: "Triggering a sync",
-			Message:         "Pipelines resource has different commit hash than the remote git commit hash",
+			PipelinesStatus: "triggering sync",
+			Message:         "pipelines resource has different commit hash than the remote git commit hash",
 		}
 	}
 
 	if syncStatus.IsSyncing {
 		return Status{
 			Type:            InProgress,
-			PipelinesStatus: models.StatusCodeNamesMap[syncStatus.LastSyncStatusCode],
-			Message:         "Pipelines is still syncing your branch to last commit hash",
+			PipelinesStatus: syncStatus.LastSyncStatusCode.StatusCodeName(),
+			Message:         "pipelines is still syncing your branch to last commit hash",
 		}
 	}
 
