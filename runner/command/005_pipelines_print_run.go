@@ -128,5 +128,5 @@ func createTestReport(httpClient http.PipelineHttpClient, state *PipedCommandSta
 }
 
 func (c *_005) TriggerOnFail(_ context.Context, _ *PipedCommandState) error {
-	return fmt.Errorf("timed out")
+	return nil
 }

@@ -57,5 +57,5 @@ func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 }
 
 func (c *_001) TriggerOnFail(_ context.Context, _ *PipedCommandState) error {
-	return fmt.Errorf("timed out")
+	return nil
 }
