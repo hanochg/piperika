@@ -46,7 +46,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		PipelineIds: strconv.Itoa(state.PipelineId),
 		Limit:       10,
 		Light:       true,
-		StatusCodes: fmt.Sprintf("%s,%s", models.Waiting.String(), models.Processing.String()),
+		StatusCodes: fmt.Sprintf("%s,%s,%s,%s", models.Ready.String(), models.Creating.String(), models.Waiting.String(), models.Processing.String()),
 		SortBy:      "runNumber",
 		SortOrder:   -1,
 	})
@@ -86,7 +86,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	if len(runResourceResp.Resources) == 0 {
 		return Status{
-			Type:            Failed,
+			Type:            InProgress,
 			PipelinesStatus: "triggering new run",
 			Message:         "no resources exist for the resolved pipeline run",
 		}
@@ -156,7 +156,5 @@ func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) erro
 		return fmt.Errorf("no pipeline step called '%s'", dirConfig.DefaultStep)
 	}
 
-	requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)
-
-	return nil
+	return requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)
 }

@@ -60,7 +60,8 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	isRunComplete := runStatusCode != models.Creating && runStatusCode != models.Waiting && runStatusCode != models.Processing
+	// Following statuses are the statuses you can receive from [creating a brand-new run] to [Run Processing]
+	isRunComplete := runStatusCode != models.Ready && runStatusCode != models.Creating && runStatusCode != models.Waiting && runStatusCode != models.Processing
 	if !(isRunComplete) {
 		outputMsg := fmt.Sprintf("Run number %d - Completed %d out of %d. Steps (InProgress/Succeed/Failed/Total) %d/%d/%d/%d",
 			state.RunNumber, len(failedSteps)+len(successSteps), len(steps.Steps), len(processingSteps),
@@ -73,7 +74,6 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 			PipelinesStatus: "processing",
 			Message:         outputMsg,
 			Type:            InProgress,
-			Link:            fmt.Sprintf("%s/myPipelines/default/access_build/%d/%s?branch=%s", baseUiUrl, state.RunNumber, failedSteps[0], url.PathEscape(state.GitBranch)),
 		}
 	}
 
@@ -96,6 +96,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	return Status{
 		Message: outputStr,
+		Link:    fmt.Sprintf("%s/myPipelines/default/access_build/%d?branch=%v", baseUiUrl, state.RunNumber, url.PathEscape(state.GitBranch)),
 		Type:    Done,
 	}
 }

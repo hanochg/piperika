@@ -17,6 +17,7 @@ const (
 	TimedOut   StatusCode = 4009
 	TimingOut  StatusCode = 4014
 	Creating   StatusCode = 4015
+	Ready      StatusCode = 4016
 )
 
 var statusCodeNamesMap = map[StatusCode]string{
@@ -32,6 +33,7 @@ var statusCodeNamesMap = map[StatusCode]string{
 	TimedOut:   "TimedOut",
 	TimingOut:  "TimingOut",
 	Creating:   "Creating",
+	Ready:      "Ready",
 }
 
 func (sc StatusCode) String() string {
