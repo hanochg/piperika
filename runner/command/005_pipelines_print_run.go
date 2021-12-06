@@ -102,17 +102,17 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 }
 
 func runStatus(httpClient http.PipelineHttpClient, state *PipedCommandState) (models.StatusCode, error) {
-	runStatus, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+	runRes, err := requests.GetRuns(httpClient, models.GetRunsOptions{
 		RunIds: strconv.Itoa(state.RunId),
 	})
 	if err != nil {
 		return models.Failure, fmt.Errorf("failed fetching pipeline runs data: %v", err)
 	}
-	if len(runStatus.Runs) == 0 {
+	if len(runRes.Runs) == 0 {
 		return models.Failure, fmt.Errorf("failed fetching pipeline runs data: %v", err)
 	}
 
-	return runStatus.Runs[0].StatusCode, nil
+	return runRes.Runs[0].StatusCode, nil
 }
 
 func createTestReport(httpClient http.PipelineHttpClient, state *PipedCommandState, stepsIdToNames map[int]string) (string, error) {
