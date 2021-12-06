@@ -64,17 +64,16 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	// Following statuses are the statuses you can receive from [creating a brand-new run] to [Run Processing]
 	isRunComplete := runStatusCode != models.Ready && runStatusCode != models.Creating && runStatusCode != models.Waiting && runStatusCode != models.Processing
 	if !(isRunComplete) {
-		outputMsg := fmt.Sprintf("Run number %d - Completed %d out of %d | %s %d, %s %d, %s %d, %s %d",
+		outputMsg := fmt.Sprintf("Run number %d - Completed %d out of %d | %s %d, %s %d, %s %d",
 			state.RunNumber, len(failedSteps)+len(successSteps), len(steps.Steps),
 			goterm.Color("Processing:", goterm.YELLOW), len(processingSteps),
 			goterm.Color("Succeeded:", goterm.GREEN), len(successSteps),
-			goterm.Color("Failed:", goterm.RED), len(failedSteps),
-			goterm.Color("Total:", goterm.MAGENTA), len(steps.Steps))
-		if len(failedSteps) != 0 {
-			outputMsg += fmt.Sprintf(", Processing steps: %s", strings.Join(processingSteps, ","))
+			goterm.Color("Failed:", goterm.RED), len(failedSteps))
+		if len(processingSteps) != 0 {
+			outputMsg += fmt.Sprintf(" | 🥁 Processing steps: %s 🥁", strings.Join(processingSteps, ","))
 		}
 		if len(failedSteps) != 0 {
-			outputMsg += fmt.Sprintf(", Failed steps: %s", strings.Join(failedSteps, ","))
+			outputMsg += fmt.Sprintf(" | 💩 Failed steps: %s 💩", goterm.Color(strings.Join(failedSteps, ","), goterm.RED))
 		}
 
 		return Status{
@@ -92,14 +91,13 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	outputMsg := fmt.Sprintf("Run %d was completed with status %s | %s %d, %s %d, %s %d, %s %d",
-		state.RunNumber, runStatusCode.StatusCodeName(),
+	outputMsg := fmt.Sprintf("Run %d has completed %d steps with status %s | %s %d, %s %d, %s %d",
+		state.RunNumber, len(steps.Steps), runStatusCode.StatusCodeName(),
 		goterm.Color("Processing:", goterm.YELLOW), len(processingSteps),
 		goterm.Color("Succeeded:", goterm.GREEN), len(successSteps),
-		goterm.Color("Failed:", goterm.RED), len(failedSteps),
-		goterm.Color("Total:", goterm.MAGENTA), len(steps.Steps))
+		goterm.Color("Failed:", goterm.RED), len(failedSteps))
 	if len(failedSteps) != 0 {
-		outputMsg += fmt.Sprintf("\nFailed steps: %s",
+		outputMsg += fmt.Sprintf("\n💩 Failed steps: %s 💩",
 			goterm.Color(strings.Join(failedSteps, ","), goterm.RED))
 	}
 	if testsFailureOutput != "" {
