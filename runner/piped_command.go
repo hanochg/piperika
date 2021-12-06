@@ -49,12 +49,9 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 		return tryOnceErr
 	}
 
-	err := terminal.UpdateFail(c.operationName, c.failState, "", "")
-	if err != nil {
-		return err
-	}
+	terminal.UpdateFail(c.operationName, c.failState, "", "")
 
-	err = c.TriggerOnFail(ctx, state)
+	err := c.TriggerOnFail(ctx, state)
 	if err != nil {
 		return err
 	}
@@ -69,16 +66,10 @@ func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *com
 
 			switch status.Type {
 			case command.InProgress:
-				err := terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, status.Link)
-				if err != nil {
-					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
-				}
+				terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, status.Link)
 				return fmt.Errorf("retrying %s: %s", c.operationName, status.Message)
 			case command.Failed:
-				err := terminal.UpdateFail(c.operationName, status.PipelinesStatus, status.Message, status.Link)
-				if err != nil {
-					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
-				}
+				terminal.UpdateFail(c.operationName, status.PipelinesStatus, status.Message, status.Link)
 
 				return backoff.Permanent(fmt.Errorf(status.Message))
 			case command.Unrecoverable:
