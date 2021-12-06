@@ -41,12 +41,12 @@ func (c *retryingPipedCommand) OperationName() string {
 }
 
 func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedCommandState) error {
-	waitErr := c.retryResolveState(ctx, state)
-	if waitErr == nil {
+	tryOnceErr := c.retryResolveState(ctx, state, &backoff.StopBackOff{})
+	if tryOnceErr == nil {
 		return nil
 	}
-	if errors.As(waitErr, &unrecoverableError{}) {
-		return waitErr
+	if errors.As(tryOnceErr, &unrecoverableError{}) {
+		return tryOnceErr
 	}
 
 	err := terminal.UpdateFail(c.operationName, c.failState, "", "")
@@ -59,10 +59,10 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 		return err
 	}
 
-	return c.retryResolveState(ctx, state)
+	return c.retryResolveState(ctx, state, c.newBackoffContext(ctx))
 }
 
-func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *command.PipedCommandState) error {
+func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *command.PipedCommandState, backoffConfig backoff.BackOff) error {
 	return backoff.Retry(
 		func() error {
 			status := c.ResolveState(ctx, state)
@@ -73,7 +73,7 @@ func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *com
 				if err != nil {
 					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
 				}
-				return fmt.Errorf("retrying %s", c.operationName)
+				return fmt.Errorf("retrying %s: %s", c.operationName, status.Message)
 			case command.Failed:
 				err := terminal.UpdateFail(c.operationName, status.PipelinesStatus, status.Message, status.Link)
 				if err != nil {
@@ -98,7 +98,7 @@ func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *com
 				panic("Unexpected command type")
 			}
 		},
-		c.newBackoffContext(ctx),
+		backoffConfig,
 	)
 }
 

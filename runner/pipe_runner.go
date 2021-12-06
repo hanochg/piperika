@@ -9,14 +9,13 @@ import (
 )
 
 var (
-	shortBackoffConfig  = backoffConfig{interval: 5 * time.Second, maxRetries: 6}    // 30 seconds
 	mediumBackoffConfig = backoffConfig{interval: 5 * time.Second, maxRetries: 60}   // 5 minutes
 	longBackoffConfig   = backoffConfig{interval: 10 * time.Second, maxRetries: 360} // 1 hour
 
 	cmds = []pipedCommand{
 		newRetryingPipedCommand("Git state", "timeout", command.New001ValidateGitState(), mediumBackoffConfig),
 		newRetryingPipedCommand("Wait or trigger pipelines sources sync", "sync pipelines sources", command.New002PipelinesSourcesBranchSync(), mediumBackoffConfig),
-		newRetryingPipedCommand("Finding active run or trigger", "trigger a run", command.New003PipelinesFindRun(), shortBackoffConfig),
+		newRetryingPipedCommand("Finding active run or trigger", "trigger a run", command.New003PipelinesFindRun(), mediumBackoffConfig),
 		newRetryingPipedCommand("Wait for run to finish", "timeout", command.New004PipelinesWaitRun(), longBackoffConfig),
 		newRetryingPipedCommand("Run results", "timeout", command.New005PipelinesPrintRun(), longBackoffConfig),
 	}
