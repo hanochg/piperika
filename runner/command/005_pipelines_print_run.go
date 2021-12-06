@@ -21,7 +21,7 @@ type _005 struct{}
 func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
-	runCompleted, err := isRunCompleted(httpClient, state)
+	runStatusCode, err := runStatus(httpClient, state)
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
@@ -58,12 +58,13 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	if !runCompleted {
+	isRunComplete := runStatusCode != models.Creating && runStatusCode != models.Waiting && runStatusCode != models.Processing
+	if !(isRunComplete) {
 		outputMsg := fmt.Sprintf("Run number %d - Completed %d out of %d. Steps (InProgress/Succeed/Failed/Total) %d/%d/%d/%d",
 			state.RunNumber, len(failedSteps)+len(successSteps), len(steps.Steps), len(processingSteps),
 			len(successSteps), len(failedSteps), len(steps.Steps))
 		if len(failedSteps) != 0 {
-			outputMsg += fmt.Sprintf("\nFailed steps: %s", strings.Join(failedSteps, ","))
+			outputMsg += fmt.Sprintf(", Failed steps: %s", strings.Join(failedSteps, ","))
 		}
 
 		return Status{
@@ -81,30 +82,33 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	outputStr := fmt.Sprintf("Run %d completed - (InProgress/Succeed/Failed) %d/%d/%d.\nFailed steps: %s\nTests results: %s",
-		state.RunNumber, len(steps.Steps), len(failedSteps), len(successSteps), strings.Join(failedSteps, ","), testsFailureOutput)
+	outputStr := fmt.Sprintf("Run %d was completed with status %s - (InProgress/Succeed/Failed) %d/%d/%d.",
+		state.RunNumber, runStatusCode.StatusCodeName(), len(steps.Steps), len(failedSteps), len(successSteps))
+	if len(failedSteps) != 0 {
+		outputStr += fmt.Sprintf("\nFailed steps: %s", strings.Join(failedSteps, ","))
+	}
 	if testsFailureOutput != "" {
 		outputStr += fmt.Sprintf("\nTests results: %s", testsFailureOutput)
 	}
+
 	return Status{
 		Message: outputStr,
 		Type:    Done,
 	}
 }
 
-func isRunCompleted(httpClient http.PipelineHttpClient, state *PipedCommandState) (bool, error) {
+func runStatus(httpClient http.PipelineHttpClient, state *PipedCommandState) (models.StatusCode, error) {
 	runStatus, err := requests.GetRuns(httpClient, models.GetRunsOptions{
 		RunIds: strconv.Itoa(state.RunId),
 	})
 	if err != nil {
-		return false, fmt.Errorf("failed fetching pipeline runs data: %v", err)
+		return models.Failure, fmt.Errorf("failed fetching pipeline runs data: %v", err)
 	}
 	if len(runStatus.Runs) == 0 {
-		return false, fmt.Errorf("failed fetching pipeline runs data: %v", err)
+		return models.Failure, fmt.Errorf("failed fetching pipeline runs data: %v", err)
 	}
 
-	statusCode := runStatus.Runs[0].StatusCode
-	return statusCode != models.Creating && statusCode != models.Waiting && statusCode != models.Processing, nil
+	return runStatus.Runs[0].StatusCode, nil
 }
 
 func createTestReport(httpClient http.PipelineHttpClient, state *PipedCommandState, stepsIdToNames map[int]string) (string, error) {

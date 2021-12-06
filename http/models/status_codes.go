@@ -1,5 +1,7 @@
 package models
 
+import "strconv"
+
 type StatusCode int
 
 const (
@@ -16,6 +18,40 @@ const (
 	TimingOut  StatusCode = 4014
 	Creating   StatusCode = 4015
 )
+
+func (sc StatusCode) String() string {
+	return strconv.Itoa(int(sc))
+}
+
+func (sc StatusCode) StatusCodeName() string {
+	switch sc {
+	case Queued:
+		return "Queued"
+	case Processing:
+		return "Processing"
+	case Success:
+		return "Success"
+	case Failure:
+		return "Failure"
+	case Error:
+		return "Error"
+	case Waiting:
+		return "Waiting"
+	case Canceled:
+		return "Canceled"
+	case Unstable:
+		return "Unstable"
+	case Skipped:
+		return "Skipped"
+	case TimedOut:
+		return "TimedOut"
+	case TimingOut:
+		return "TimingOut"
+	case Creating:
+		return "Creating"
+	}
+	return ""
+}
 
 var StatusCodeNamesMap = map[StatusCode]string{
 	Queued:     "Queued",

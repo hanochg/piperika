@@ -21,7 +21,8 @@ func GetPipelinesSteps(client http.PipelineHttpClient, options models.GetPipelin
 	return res, err
 }
 
-func TriggerPipelinesStep(client http.PipelineHttpClient, stepId int) error {
-	_, err := client.SendPost(fmt.Sprintf("%s/%d/trigger", stepUrl, stepId), http.ClientOptions{Query: nil}, nil)
-	return err
+func TriggerPipelinesStep(client http.PipelineHttpClient, stepId int) {
+	// Pipelines sometimes trigger the run but returns an unexpected response
+	// So, we ignore the API error as it's not relevant to our use-case
+	_, _ = client.SendPost(fmt.Sprintf("%s/%d/trigger", stepUrl, stepId), http.ClientOptions{Query: nil}, nil)
 }

@@ -46,7 +46,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		PipelineIds: strconv.Itoa(state.PipelineId),
 		Limit:       10,
 		Light:       true,
-		StatusCodes: strconv.Itoa(int(models.Processing)),
+		StatusCodes: fmt.Sprintf("%s,%s", models.Waiting.String(), models.Processing.String()),
 		SortBy:      "runNumber",
 		SortOrder:   -1,
 	})
@@ -58,8 +58,8 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 	if len(runResp.Runs) == 0 {
 		return Status{
-			PipelinesStatus: "There are no active runs",
-			Message:         "Waiting for run creation",
+			PipelinesStatus: "there are no active relevant runs",
+			Message:         "waiting for run creation",
 			Type:            InProgress,
 		}
 	}
@@ -156,10 +156,7 @@ func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) erro
 		return fmt.Errorf("no pipeline step called '%s'", dirConfig.DefaultStep)
 	}
 
-	err = requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)
-	if err != nil {
-		return fmt.Errorf("failed triggering pipeline step '%s': %v", dirConfig.DefaultStep, err)
-	}
+	requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)
 
 	return nil
 }
