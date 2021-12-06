@@ -84,7 +84,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 
 	return Status{
-		Message: fmt.Sprintf("Pipelines branch %s is synced", state.GitBranch),
+		Message: fmt.Sprintf("Pipelines branch %s is synced to last commit hash", state.GitBranch),
 		Type:    Done,
 	}
 }
