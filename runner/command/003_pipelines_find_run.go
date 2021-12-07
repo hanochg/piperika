@@ -38,7 +38,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		return Status{
 			Type:            InProgress,
 			PipelinesStatus: "missing pipeline",
-			Message:         "waiting for pipeline creation",
+			Message:         fmt.Sprintf("waiting for pipeline '%s' creation", dirConfig.PipelineName),
 		}
 	}
 	state.PipelineId = pipeResp.Pipelines[0].PipelineId
