@@ -42,17 +42,17 @@ func (c *retryingPipedCommand) OperationName() string {
 }
 
 func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedCommandState) error {
-	tryOnceErr := c.retryResolveState(ctx, state, c.newBackoffContext(ctx, true))
-	if tryOnceErr == nil {
+	err := c.retryResolveState(ctx, state, c.newBackoffContext(ctx, true))
+	if err == nil {
 		return nil
 	}
-	if errors.As(tryOnceErr, &unrecoverableError{}) {
-		return tryOnceErr
+	if errors.As(err, &unrecoverableError{}) {
+		return err
 	}
 
 	terminal.UpdateFail(c.operationName, c.failState, "", "")
 
-	err := c.TriggerOnFail(ctx, state)
+	err = c.TriggerOnFail(ctx, state)
 	if err != nil {
 		return err
 	}
