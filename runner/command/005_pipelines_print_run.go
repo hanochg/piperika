@@ -105,7 +105,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	return Status{
 		Message: outputMsg,
-		Link: fmt.Sprintf("%s\n",
+		Link: fmt.Sprintf("%s ",
 			utils.GetPipelinesRunURL(baseUiUrl, dirConfig.PipelineName, dirConfig.DefaultStep, state.RunNumber, state.GitBranch)),
 		Type: Done,
 	}
@@ -134,8 +134,8 @@ func createTestReport(httpClient http.PipelineHttpClient, state *PipedCommandSta
 	var testsFailureOutput bytes.Buffer
 	for _, testFailures := range testReports.TestReports {
 		for _, failure := range testFailures.FailureDetails {
-			testsFailureOutput.WriteString(fmt.Sprintf("\n%s - %s:%s - %s, %s",
-				failure.ClassName, failure.TestName, failure.Kind, failure.Message, stepsIdToNames[testFailures.StepId]))
+			testsFailureOutput.WriteString(fmt.Sprintf("\n[%s] - %s - %s:%s - %s",
+				stepsIdToNames[testFailures.StepId], failure.ClassName, failure.TestName, failure.Kind, failure.Message))
 		}
 	}
 	return testsFailureOutput.String(), nil
