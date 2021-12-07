@@ -16,8 +16,9 @@ type pipedCommand interface {
 }
 
 type backoffConfig struct {
-	interval   time.Duration
-	maxRetries int
+	interval            time.Duration
+	firstTimeout        time.Duration
+	afterTriggerTimeout time.Duration
 }
 
 type retryingPipedCommand struct {
@@ -41,7 +42,7 @@ func (c *retryingPipedCommand) OperationName() string {
 }
 
 func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedCommandState) error {
-	tryOnceErr := c.retryResolveState(ctx, state, &backoff.StopBackOff{})
+	tryOnceErr := c.retryResolveState(ctx, state, c.newBackoffContext(ctx, true))
 	if tryOnceErr == nil {
 		return nil
 	}
@@ -56,7 +57,7 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 		return err
 	}
 
-	return c.retryResolveState(ctx, state, c.newBackoffContext(ctx))
+	return c.retryResolveState(ctx, state, c.newBackoffContext(ctx, false))
 }
 
 func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *command.PipedCommandState, backoffConfig backoff.BackOff) error {
@@ -97,7 +98,13 @@ type unrecoverableError struct {
 	error
 }
 
-func (c *retryingPipedCommand) newBackoffContext(ctx context.Context) backoff.BackOffContext {
-	initialBackoff := backoff.WithMaxRetries(backoff.NewConstantBackOff(c.interval), uint64(c.maxRetries))
+func (c *retryingPipedCommand) newBackoffContext(ctx context.Context, isFirst bool) backoff.BackOffContext {
+	timeout := c.firstTimeout
+	if !isFirst {
+		timeout = c.afterTriggerTimeout
+	}
+	maxRetries := uint64(timeout.Nanoseconds() / c.interval.Nanoseconds())
+
+	initialBackoff := backoff.WithMaxRetries(backoff.NewConstantBackOff(c.interval), maxRetries)
 	return backoff.WithContext(initialBackoff, ctx)
 }

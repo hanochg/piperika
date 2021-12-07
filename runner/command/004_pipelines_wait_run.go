@@ -43,7 +43,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 	state.RunStepIdsCsv = strings.Trim(strings.Join(stepIds, ","), "[]")
 
-	runStatus, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+	runResp, err := requests.GetRuns(httpClient, models.GetRunsOptions{
 		RunIds: strconv.Itoa(state.RunId),
 	})
 	if err != nil {
@@ -52,7 +52,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 			Message: fmt.Sprintf("Failed fetching pipeline runs data: %v", err),
 		}
 	}
-	if len(runStatus.Runs) == 0 {
+	if len(runResp.Runs) == 0 {
 		return Status{
 			Type:            InProgress,
 			PipelinesStatus: "waiting for run",
@@ -62,7 +62,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	return Status{
 		Message: fmt.Sprintf("Watching run #%d with %d steps, current run status %s",
-			state.RunNumber, len(stepsResp.Steps), runStatus.Runs[0].StatusCode.StatusCodeName()),
+			state.RunNumber, len(stepsResp.Steps), runResp.Runs[0].StatusCode.StatusCodeName()),
 		Type: Done,
 	}
 }
