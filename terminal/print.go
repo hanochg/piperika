@@ -39,7 +39,7 @@ func UpdateFail(operationName, status, message, link string) {
 
 func UpdateUnrecoverable(operationName, message, link string) error {
 	stopProcess()
-	return replaceLine("💩 %s%s%s%s%s", goterm.Bold(operationName), breakLine, fixBreakLine(message), getOptionalLinkText(link))
+	return replaceLine("💩 %s%s%s%s", goterm.Bold(operationName), breakLine, fixBreakLine(message), getOptionalLinkText(link))
 }
 
 func DoneMessage(operationName, message, link string) error {

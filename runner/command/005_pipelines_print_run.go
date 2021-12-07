@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/buger/goterm"
 	"github.com/hanochg/piperika/http"
-	"github.com/hanochg/piperika/http/models"
 	"github.com/hanochg/piperika/http/requests"
 	"github.com/hanochg/piperika/utils"
 	"strconv"
@@ -33,7 +32,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 
 	// Get steps statuses
-	steps, err := requests.GetSteps(httpClient, models.GetStepsOptions{
+	steps, err := requests.GetSteps(httpClient, requests.GetStepsOptions{
 		RunIds: strconv.Itoa(state.RunId),
 		Limit:  0,
 	})
@@ -50,19 +49,19 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	processingSteps := make([]string, 0)
 	for _, step := range steps.Steps {
 		stepsIdToNames[step.Id] = step.Name
-		if step.StatusCode == models.Failure {
+		if step.StatusCode == http.Failure {
 			failedSteps = append(failedSteps, step.Name)
 		}
-		if step.StatusCode == models.Success {
+		if step.StatusCode == http.Success {
 			successSteps = append(successSteps, step.Name)
 		}
-		if step.StatusCode == models.Processing {
+		if step.StatusCode == http.Processing {
 			processingSteps = append(processingSteps, step.Name)
 		}
 	}
 
 	// Following statuses are the statuses you can receive from [creating a brand-new run] to [Run Processing]
-	isRunComplete := runStatusCode != models.Ready && runStatusCode != models.Creating && runStatusCode != models.Waiting && runStatusCode != models.Processing
+	isRunComplete := runStatusCode != http.Ready && runStatusCode != http.Creating && runStatusCode != http.Waiting && runStatusCode != http.Processing
 	if !(isRunComplete) {
 		outputMsg := fmt.Sprintf("Run number %d - Completed %d out of %d | %s %d, %s %d, %s %d",
 			state.RunNumber, len(failedSteps)+len(successSteps), len(steps.Steps),
@@ -112,22 +111,22 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 }
 
-func runStatus(httpClient http.PipelineHttpClient, state *PipedCommandState) (models.StatusCode, error) {
-	runRes, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+func runStatus(httpClient http.PipelineHttpClient, state *PipedCommandState) (http.StatusCode, error) {
+	runRes, err := requests.GetRuns(httpClient, requests.GetRunsOptions{
 		RunIds: strconv.Itoa(state.RunId),
 	})
 	if err != nil {
-		return models.Failure, fmt.Errorf("failed fetching pipeline runs data: %v", err)
+		return http.Failure, fmt.Errorf("failed fetching pipeline runs data: %v", err)
 	}
 	if len(runRes.Runs) == 0 {
-		return models.Failure, fmt.Errorf("failed fetching pipeline runs data: %v", err)
+		return http.Failure, fmt.Errorf("failed fetching pipeline runs data: %v", err)
 	}
 
 	return runRes.Runs[0].StatusCode, nil
 }
 
 func createTestReport(httpClient http.PipelineHttpClient, state *PipedCommandState, stepsIdToNames map[int]string) (string, error) {
-	testReports, err := requests.GetStepsTestReports(httpClient, models.StepsTestReportsOptions{StepIds: state.RunStepIdsCsv})
+	testReports, err := requests.GetStepsTestReports(httpClient, requests.StepsTestReportsOptions{StepIds: state.RunStepIdsCsv})
 	if err != nil {
 		return "", err
 	}

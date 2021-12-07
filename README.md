@@ -1,4 +1,4 @@
-![](images/logo.png)
+![](assets/logo.png)
 
 
 ## About this plugin
@@ -30,13 +30,13 @@ make build-multi-os
 
 ## Usage
 ### What will Piperika do?
-* Validate that your local commit is on the remote git server (so the CI could use it)
+* Validate that your local commit is on the remote git server (so the CI server could reach it)
 * Sync Pipelines with your branch and latest commit SHA (if needed).
 * Check if there is a CI pipe that is already running with your commit, if not, it will trigger it.
 * Follow up your CI run, providing the current state and progress, information about your run steps (in progress, succeed and failed steps), and displays information about tests failure.
 
 ### Commands
-* `piperika` (or just `pp`): </br>
+* `piperika run` (or just `piperika r`): </br>
 It will start the Piperika magic.</br>
 
 
