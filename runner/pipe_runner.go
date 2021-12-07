@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"github.com/hanochg/piperika/runner/command"
 	"github.com/hanochg/piperika/terminal"
 	"time"
@@ -32,7 +33,8 @@ func RunPipe(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-
 	}
+
+	fmt.Println()
 	return nil
 }
