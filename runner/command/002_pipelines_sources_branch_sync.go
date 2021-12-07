@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/hanochg/piperika/http"
-	"github.com/hanochg/piperika/http/models"
 	"github.com/hanochg/piperika/http/requests"
 	"github.com/hanochg/piperika/utils"
 	"strconv"
@@ -19,7 +18,7 @@ type _002 struct{}
 func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
-	syncStatusResp, err := requests.GetSyncStatus(httpClient, models.SyncOptions{
+	syncStatusResp, err := requests.GetSyncStatus(httpClient, requests.SyncOptions{
 		PipelineSourceBranches: state.GitBranch,
 		PipelineSourceId:       state.PipelinesSourceId,
 		Light:                  true,
@@ -40,7 +39,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 
 	syncStatus := syncStatusResp.SyncStatuses[0]
-	if !syncStatus.IsSyncing && syncStatus.LastSyncStatusCode != models.Success {
+	if !syncStatus.IsSyncing && syncStatus.LastSyncStatusCode != http.Success {
 		return Status{
 			Type:            Failed,
 			PipelinesStatus: "triggering sync",
@@ -48,7 +47,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	resVersions, err := requests.GetResourceVersions(httpClient, models.GetResourcesOptions{
+	resVersions, err := requests.GetResourceVersions(httpClient, requests.GetResourcesOptions{
 		PipelineSourceIds:  strconv.Itoa(state.PipelinesSourceId),
 		ResourceVersionIds: strconv.Itoa(syncStatus.ResourceVersionId),
 	})
@@ -92,7 +91,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 func (c *_002) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
-	_, err := requests.SyncSource(httpClient, models.SyncSourcesOptions{
+	_, err := requests.SyncSource(httpClient, requests.SyncSourcesOptions{
 		Branch:           state.GitBranch,
 		ShouldSync:       true,
 		PipelineSourceId: state.PipelinesSourceId,

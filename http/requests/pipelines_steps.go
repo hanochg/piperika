@@ -4,19 +4,33 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hanochg/piperika/http"
-	"github.com/hanochg/piperika/http/models"
 )
 
 const (
 	stepUrl = "/pipelineSteps"
 )
 
-func GetPipelinesSteps(client http.PipelineHttpClient, options models.GetPipelinesStepsOptions) (*models.PipelinesStepsResponse, error) {
+type GetPipelinesStepsOptions struct {
+	PipelineIds       string `url:"pipelineIds,omitempty"`
+	PipelineSourceIds string `url:"pipelineSourceIds,omitempty"`
+	Names             string `url:"names,omitempty"`
+}
+
+type PipelinesSteps struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type PipelinesStepsResponse struct {
+	Steps []PipelinesSteps
+}
+
+func GetPipelinesSteps(client http.PipelineHttpClient, options GetPipelinesStepsOptions) (*PipelinesStepsResponse, error) {
 	body, err := client.SendGet(stepUrl, http.ClientOptions{Query: options})
 	if err != nil {
 		return nil, err
 	}
-	res := &models.PipelinesStepsResponse{}
+	res := &PipelinesStepsResponse{}
 	err = json.Unmarshal(body, &res.Steps)
 	return res, err
 }

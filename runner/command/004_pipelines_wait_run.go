@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/hanochg/piperika/http"
-	"github.com/hanochg/piperika/http/models"
 	"github.com/hanochg/piperika/http/requests"
 	"github.com/hanochg/piperika/utils"
 	"strconv"
@@ -19,7 +18,7 @@ type _004 struct{}
 
 func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	stepsResp, err := requests.GetSteps(httpClient, models.GetStepsOptions{
+	stepsResp, err := requests.GetSteps(httpClient, requests.GetStepsOptions{
 		RunIds: strconv.Itoa(state.RunId),
 		Limit:  100,
 	})
@@ -43,7 +42,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 	state.RunStepIdsCsv = strings.Trim(strings.Join(stepIds, ","), "[]")
 
-	runStatus, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+	runResp, err := requests.GetRuns(httpClient, requests.GetRunsOptions{
 		RunIds: strconv.Itoa(state.RunId),
 	})
 	if err != nil {
@@ -52,7 +51,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 			Message: fmt.Sprintf("Failed fetching pipeline runs data: %v", err),
 		}
 	}
-	if len(runStatus.Runs) == 0 {
+	if len(runResp.Runs) == 0 {
 		return Status{
 			Type:            InProgress,
 			PipelinesStatus: "waiting for run",
@@ -62,7 +61,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	return Status{
 		Message: fmt.Sprintf("Watching run #%d with %d steps, current run status %s",
-			state.RunNumber, len(stepsResp.Steps), runStatus.Runs[0].StatusCode.StatusCodeName()),
+			state.RunNumber, len(stepsResp.Steps), runResp.Runs[0].StatusCode.StatusCodeName()),
 		Type: Done,
 	}
 }

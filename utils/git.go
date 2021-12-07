@@ -26,25 +26,6 @@ func GetCurrentBranchName() (string, error) {
 	return referenceName.Short(), nil
 }
 
-func GetLocalBranches() ([]string, error) {
-	repository, err := getLocalRepo()
-	if err != nil {
-		return nil, err
-	}
-	branches, err := repository.Branches()
-
-	res := make([]string, 0)
-	err = branches.ForEach(func(reference *plumbing.Reference) error {
-		res = append(res, reference.Name().Short())
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
 func GetCommitHash(branch string, remote bool) (string, error) {
 	repository, err := getLocalRepo()
 	if err != nil {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/hanochg/piperika/http"
-	"github.com/hanochg/piperika/http/models"
 	"github.com/hanochg/piperika/http/requests"
 	"github.com/hanochg/piperika/utils"
 	"strconv"
@@ -23,7 +22,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
 
-	pipeResp, err := requests.GetPipelines(httpClient, models.GetPipelinesOptions{
+	pipeResp, err := requests.GetPipelines(httpClient, requests.GetPipelinesOptions{
 		SortBy:     "latestRunId",
 		FilterBy:   state.GitBranch,
 		Light:      true,
@@ -44,11 +43,11 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 	state.PipelineId = pipeResp.Pipelines[0].PipelineId
 
-	runResp, err := requests.GetRuns(httpClient, models.GetRunsOptions{
+	runResp, err := requests.GetRuns(httpClient, requests.GetRunsOptions{
 		PipelineIds: strconv.Itoa(state.PipelineId),
 		Limit:       10,
 		Light:       true,
-		StatusCodes: fmt.Sprintf("%s,%s,%s,%s", models.Ready.String(), models.Creating.String(), models.Waiting.String(), models.Processing.String()),
+		StatusCodes: fmt.Sprintf("%s,%s,%s,%s", http.Ready.String(), http.Creating.String(), http.Waiting.String(), http.Processing.String()),
 		SortBy:      "runNumber",
 		SortOrder:   -1,
 	})
@@ -66,14 +65,13 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	// TODO: change to struct, and convert to ints here instead of later
 	runIds := make([]string, 0)
 	runNumbers := make([]string, 0)
 	for _, run := range runResp.Runs {
 		runIds = append(runIds, strconv.Itoa(run.RunId))
 		runNumbers = append(runNumbers, strconv.Itoa(run.RunNumber))
 	}
-	runResourceResp, err := requests.GetRunResourceVersions(httpClient, models.GetRunResourcesOptions{
+	runResourceResp, err := requests.GetRunResourceVersions(httpClient, requests.GetRunResourcesOptions{
 		PipelineSourceIds: strconv.Itoa(state.PipelinesSourceId),
 		RunIds:            strings.Trim(strings.Join(runIds, ","), "[]"),
 		SortBy:            "resourceTypeCode",
@@ -96,7 +94,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	activeRunIds := make([]int, 0)
 	for _, runResource := range runResourceResp.Resources {
-		if runResource.ResourceTypeCode != models.GitRepo {
+		if runResource.ResourceTypeCode != http.GitRepo {
 			continue
 		}
 		if runResource.ResourceVersionContentPropertyBag.CommitSha == state.HeadCommitSha {
@@ -151,7 +149,7 @@ func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) erro
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
 
-	pipeSteps, err := requests.GetPipelinesSteps(httpClient, models.GetPipelinesStepsOptions{
+	pipeSteps, err := requests.GetPipelinesSteps(httpClient, requests.GetPipelinesStepsOptions{
 		PipelineIds:       strconv.Itoa(state.PipelineId),
 		PipelineSourceIds: strconv.Itoa(state.PipelinesSourceId),
 		Names:             dirConfig.DefaultStep,

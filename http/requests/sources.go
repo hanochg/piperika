@@ -4,29 +4,43 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hanochg/piperika/http"
-	"github.com/hanochg/piperika/http/models"
 )
 
 const (
 	sourcesUrl = "/pipelineSources"
 )
 
-func GetSource(client http.PipelineHttpClient, options models.GetSourcesOptions) (*models.SourcesResponse, error) {
-	body, err := client.SendGet(sourcesUrl, http.ClientOptions{Query: options})
-	if err != nil {
-		return nil, err
-	}
-	res := &models.SourcesResponse{}
-	err = json.Unmarshal(body, &res.Sources)
-	return res, err
+type GetSourcesOptions struct {
+	PipelineSourceIds string `url:"pipelineSourceIds,omitempty"` // Can be a csv list
 }
 
-func SyncSource(client http.PipelineHttpClient, options models.SyncSourcesOptions) (*models.SourcesResponse, error) {
+type SyncSourcesOptions struct {
+	Branch           string `url:"branch,omitempty"`
+	ShouldSync       bool   `url:"sync,omitempty"`
+	PipelineSourceId int
+}
+
+type Source struct {
+	Id                 int             `json:"id"`
+	RepositoryFullName string          `json:"repositoryFullName"`
+	LastSyncStatusCode http.StatusCode `json:"lastSyncStatusCode"`
+	IsSyncing          bool            `json:"isSyncing"`
+	LastSyncStartedAt  string          `json:"lastSyncStartedAt"`
+	LastSyncEndedAt    string          `json:"lastSyncEndedAt"`
+	LastSyncLogs       string          `json:"lastSyncLogs"`
+	SyncUpdatedAt      string          `json:"updatedAt"`
+}
+
+type SourcesResponse struct {
+	Sources []Source
+}
+
+func SyncSource(client http.PipelineHttpClient, options SyncSourcesOptions) (*SourcesResponse, error) {
 	body, err := client.SendGet(sourcesUrl+fmt.Sprintf("/%d", options.PipelineSourceId), http.ClientOptions{Query: options})
 	if err != nil {
 		return nil, err
 	}
-	res := &models.SourcesResponse{Sources: []models.Source{{}}}
+	res := &SourcesResponse{Sources: []Source{{}}}
 	err = json.Unmarshal(body, &res.Sources[0])
 	return res, err
 }

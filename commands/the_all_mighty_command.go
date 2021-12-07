@@ -13,7 +13,7 @@ import (
 func GetCommand() components.Command {
 	return components.Command{
 		Name:        "run",
-		Description: "Start a Pipelines run with your local git branch (if needed)",
+		Description: "Start a Pipelines cycle with your Git commit and branch",
 		Aliases:     []string{"r"},
 		Arguments:   getArguments(),
 		Flags:       getFlags(),
