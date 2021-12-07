@@ -92,7 +92,7 @@ func progressLine(format string, a ...interface{}) {
 		for i := 0; ; i = (i + 1) % len(animation) {
 			select {
 			case <-time.After(animationInterval):
-				err := replaceLine(animation[i]+format, a...)
+				err := replaceLine(animation[i]+" "+format, a...)
 				if err != nil {
 					fmt.Printf("Error printing %v", err)
 					return
