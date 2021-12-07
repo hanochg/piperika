@@ -49,7 +49,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	processingSteps := make([]string, 0)
 	for _, step := range steps.Steps {
 		stepsIdToNames[step.Id] = step.Name
-		if step.StatusCode == http.Failure {
+		if step.StatusCode == http.Failure || step.StatusCode == http.Error {
 			failedSteps = append(failedSteps, step.Name)
 		}
 		if step.StatusCode == http.Success {
