@@ -9,7 +9,7 @@ import (
 
 var (
 	shortBackoffConfig = backoffConfig{interval: 5 * time.Second, firstTimeout: 15 * time.Second, afterTriggerTimeout: 5 * time.Minute}
-	longBackoffConfig  = backoffConfig{interval: 10 * time.Second, firstTimeout: 1 * time.Hour, afterTriggerTimeout: 1 * time.Hour}
+	longBackoffConfig  = backoffConfig{interval: 10 * time.Second, firstTimeout: 2 * time.Hour, afterTriggerTimeout: 1 * time.Hour}
 
 	cmds = []pipedCommand{
 		newRetryingPipedCommand("Git state", "", command.New001ValidateGitState(), shortBackoffConfig),
