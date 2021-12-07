@@ -7,7 +7,15 @@ import (
 	"time"
 )
 
-const breakLine = "\n↳ "
+const (
+	breakLine         = "\n↳ "
+	animationInterval = time.Millisecond * 100
+)
+
+var (
+	progressChan chan struct{}
+	animation    = [...]string{"🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"}
+)
 
 func UpdateStatus(operationName, status, message, link string) {
 	msg := ""
@@ -42,7 +50,7 @@ func DoneMessage(operationName, message, link string) error {
 }
 
 func StartingRun(operationName string) error {
-	_, err := goterm.Printf("\n")
+	_, err := goterm.Println("")
 	if err != nil {
 		return err
 	}
@@ -74,19 +82,15 @@ func replaceLine(format string, a ...interface{}) error {
 	return nil
 }
 
-var progressChan chan struct{}
-
-var animation = [...]string{"🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"}
-
 func progressLine(format string, a ...interface{}) {
 	stopProcess()
 
 	progressChan = make(chan struct{})
 	go func() {
-		for i := 0; ; i++ {
+		for i := 0; ; i = (i + 1) % len(animation) {
 			select {
-			case <-time.After(time.Millisecond * 100):
-				err := replaceLine(animation[i%len(animation)]+format, a...)
+			case <-time.After(animationInterval):
+				err := replaceLine(animation[i]+format, a...)
 				if err != nil {
 					fmt.Printf("Error printing %v", err)
 					return
