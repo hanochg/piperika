@@ -7,10 +7,6 @@ type PipedCommandState struct {
 	GitBranch     string
 	HeadCommitSha string
 
-	// triggering
-	ShouldTriggerPipelinesSync bool
-	ShouldTriggerRun           bool
-
 	// pipelines details
 	PipelinesSourceId int
 	PipelineId        int

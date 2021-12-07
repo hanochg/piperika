@@ -39,14 +39,12 @@ func UpdateFail(operationName, status, message, link string) {
 
 func UpdateUnrecoverable(operationName, message, link string) error {
 	stopProcess()
-	message = strings.ReplaceAll(message, "\n", breakLine)
-	return replaceLine("💩 %s%s%s%s%s", goterm.Bold(operationName), breakLine, message, getOptionalLinkText(link))
+	return replaceLine("💩 %s%s%s%s%s", goterm.Bold(operationName), breakLine, fixBreakLine(message), getOptionalLinkText(link))
 }
 
 func DoneMessage(operationName, message, link string) error {
 	stopProcess()
-	message = strings.ReplaceAll(message, "\n", breakLine)
-	return replaceLine("✅ %s%s%s%s", goterm.Bold(operationName), breakLine, message, getOptionalLinkText(link))
+	return replaceLine("✅ %s%s%s%s", goterm.Bold(operationName), breakLine, fixBreakLine(message), getOptionalLinkText(link))
 }
 
 func StartingRun(operationName string) error {
@@ -57,6 +55,10 @@ func StartingRun(operationName string) error {
 
 	progressLine("%s...", operationName)
 	return nil
+}
+
+func fixBreakLine(message string) string {
+	return strings.ReplaceAll(message, "\n", breakLine)
 }
 
 func getOptionalLinkText(link string) string {
