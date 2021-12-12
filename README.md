@@ -42,3 +42,8 @@ It will start the Piperika magic.</br>
 
 ## Release Notes
 The release notes are available [here](RELEASE.md).
+
+## Owners
+Hanoch Giner</br>
+Itai Raz</br>
+Omer Karjevsky

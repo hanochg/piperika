@@ -33,6 +33,47 @@ var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each di
 		DefaultStep:       "go_base_application",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
+
+	"/artifactory": {
+		PipelineName:      "artifactory_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/jfconnect": {
+		PipelineName:      "jfconnect_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/jfconnect/service": {
+		PipelineName:      "jfconnect_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/jfconnect/go-client": {
+		PipelineName:      "jfconnect_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/jfconnect/java-client": {
+		PipelineName:      "jfconnect_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/jfconnect/nodejs-client": {
+		PipelineName:      "jfconnect_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/metadata": {
+		PipelineName:      "metadata_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/router": {
+		PipelineName:      "router_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
 }
 
 type DirConfig struct {

@@ -20,5 +20,8 @@ func getApp() components.App {
 }
 
 func getCommands() []components.Command {
-	return []components.Command{commands.GetCommand()}
+	return []components.Command{
+		commands.GetCommand(),
+		commands.GetLinkCommand(),
+	}
 }
