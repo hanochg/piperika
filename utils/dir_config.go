@@ -74,6 +74,11 @@ var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each di
 		DefaultStep:       "trigger_all",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
+	"/artifactory-oss": {
+		PipelineName:      "artifactory_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
 }
 
 type DirConfig struct {
