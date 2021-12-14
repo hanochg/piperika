@@ -43,7 +43,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		return Status{
 			Type:            Failed,
 			PipelinesStatus: "triggering sync",
-			Message:         "pipeline sync for the branch has already run and failed, triggering new sync",
+			Message:         "pipeline sync for the branch previously failed, triggering new sync",
 		}
 	}
 
