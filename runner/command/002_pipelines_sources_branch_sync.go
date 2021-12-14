@@ -30,7 +30,16 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	if len(syncStatusResp.SyncStatuses) == 0 {
+	var syncStatus *requests.SyncStatus
+	for _, curStatus := range syncStatusResp.SyncStatuses {
+		if curStatus.PipelineSourceBranch == state.GitBranch &&
+			curStatus.PipelineSourceId == state.PipelinesSourceId {
+			syncStatus = &curStatus
+			break
+		}
+	}
+
+	if syncStatus == nil {
 		return Status{
 			Type:            Failed,
 			PipelinesStatus: "triggering sync",
@@ -38,7 +47,6 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	syncStatus := syncStatusResp.SyncStatuses[0]
 	if !syncStatus.IsSyncing && syncStatus.LastSyncStatusCode != http.Success {
 		return Status{
 			Type:            Failed,
