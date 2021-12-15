@@ -54,6 +54,8 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 
 	err = c.TriggerOnFail(ctx, state)
 	if err != nil {
+		_ = terminal.UpdateUnrecoverable(c.operationName, err.Error(), "")
+
 		return err
 	}
 

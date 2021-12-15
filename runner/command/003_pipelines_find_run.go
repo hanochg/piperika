@@ -140,8 +140,8 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 
 	return Status{
-		Type:    Failed,
-		Message: "did not find any active runs, triggering new run",
+		Type:    InProgress,
+		Message: "did not find any active runs",
 	}
 }
 
