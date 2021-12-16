@@ -15,7 +15,7 @@ var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each di
 	},
 	"/access/client": {
 		PipelineName:      "access_build",
-		DefaultStep:       "access_client",
+		DefaultStep:       "access_java_client",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 	"/access-nodejs-client": {
