@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+const maxStepList = 3
+
 func New005PipelinesPrintRun() *_005 {
 	return &_005{}
 }
@@ -69,10 +71,10 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 			goterm.Color("Succeeded:", goterm.GREEN), len(successSteps),
 			goterm.Color("Failed:", goterm.RED), len(failedSteps))
 		if len(processingSteps) != 0 {
-			outputMsg += fmt.Sprintf(" | Processing steps: 🥁 %s 🥁", strings.Join(processingSteps, ","))
+			outputMsg += fmt.Sprintf(" | Processing steps: 🥁 %s 🥁", stepList(processingSteps))
 		}
 		if len(failedSteps) != 0 {
-			outputMsg += fmt.Sprintf(" | Failed steps: 💩 %s 💩", goterm.Color(strings.Join(failedSteps, ","), goterm.RED))
+			outputMsg += fmt.Sprintf(" | Failed steps: 💩 %s 💩", goterm.Color(stepList(failedSteps), goterm.RED))
 		}
 
 		return Status{
@@ -109,6 +111,16 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 			utils.GetPipelinesRunURL(baseUiUrl, dirConfig.PipelineName, dirConfig.DefaultStep, state.RunNumber, state.GitBranch)),
 		Type: Done,
 	}
+}
+
+func stepList(processingSteps []string) string {
+	andMore := ""
+	limiter := len(processingSteps)
+	if len(processingSteps) > maxStepList {
+		andMore = fmt.Sprintf(" and %d more...", len(processingSteps)-maxStepList)
+		limiter = maxStepList
+	}
+	return strings.Join(processingSteps[:limiter], ", ") + andMore
 }
 
 func runStatus(httpClient http.PipelineHttpClient, state *PipedCommandState) (http.StatusCode, error) {

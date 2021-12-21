@@ -92,13 +92,13 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	activeRunIds := make([]int, 0)
+	activeRunIds := -1
 	for _, runResource := range runResourceResp.Resources {
 		if runResource.ResourceTypeCode != http.GitRepo {
 			continue
 		}
 		if runResource.ResourceVersionContentPropertyBag.CommitSha == state.HeadCommitSha {
-			activeRunIds = append(activeRunIds, runResource.RunId)
+			activeRunIds = runResource.RunId
 			break
 		}
 	}
@@ -121,7 +121,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 				Message:         fmt.Sprintf("corrupted data for the resolved pipeline run, err %v", err),
 			}
 		}
-		if utils.Contains(activeRunIds, runId) {
+		if activeRunIds == runId {
 			state.RunId = runId
 			state.RunNumber = runNumber
 			break
@@ -132,7 +132,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	if c.runTriggered {
 		msg = fmt.Sprintf("Run #%d was triggered", state.RunNumber)
 	}
-	if len(activeRunIds) != 0 && state.RunId != -1 {
+	if activeRunIds != -1 && state.RunId != -1 {
 		return Status{
 			Message: msg,
 			Type:    Done,
@@ -140,8 +140,9 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 
 	return Status{
-		Type:    InProgress,
-		Message: "did not find any active runs",
+		Type:            InProgress,
+		PipelinesStatus: "Not exists",
+		Message:         "did not find any active runs",
 	}
 }
 
