@@ -14,15 +14,8 @@ type _001 struct{}
 
 func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
+	branchName := ctx.Value(utils.BranchName).(string)
 	state.PipelinesSourceId = dirConfig.PipelinesSourceId
-
-	branchName, err := utils.GetCurrentBranchName()
-	if err != nil {
-		return Status{
-			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed resolving current git branch: %v", err),
-		}
-	}
 
 	localCommitHash, err := utils.GetCommitHash(branchName, false)
 	if err != nil {
@@ -46,7 +39,6 @@ func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		}
 	}
 
-	state.GitBranch = branchName
 	state.HeadCommitSha = remoteCommitHash
 
 	return Status{

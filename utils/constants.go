@@ -1,6 +1,9 @@
 package utils
 
-var ArtifactoryPipelinesSourceId = 6
-var HttpClientCtxKey = "httpClient"
-var BaseUiUrl = "baseUiUrl"
-var DirConfigCtxKey = "dirConfig"
+const (
+	ArtifactoryPipelinesSourceId = 6
+	HttpClientCtxKey             = "httpClient"
+	BaseUiUrl                    = "baseUiUrl"
+	BranchName                   = "branchName"
+	DirConfigCtxKey              = "dirConfig"
+)

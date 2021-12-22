@@ -4,7 +4,6 @@ import "context"
 
 type PipedCommandState struct {
 	// git details
-	GitBranch     string
 	HeadCommitSha string
 
 	// pipelines details

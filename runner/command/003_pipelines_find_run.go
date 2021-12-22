@@ -21,10 +21,11 @@ type _003 struct {
 func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
+	branchName := ctx.Value(utils.BranchName).(string)
 
 	pipeResp, err := requests.GetPipelines(httpClient, requests.GetPipelinesOptions{
 		SortBy:     "latestRunId",
-		FilterBy:   state.GitBranch,
+		FilterBy:   branchName,
 		Light:      true,
 		PipesNames: dirConfig.PipelineName,
 	})

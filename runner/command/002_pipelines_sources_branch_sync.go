@@ -17,9 +17,10 @@ type _002 struct{}
 
 func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+	branchName := ctx.Value(utils.BranchName).(string)
 
 	syncStatusResp, err := requests.GetSyncStatus(httpClient, requests.SyncOptions{
-		PipelineSourceBranches: state.GitBranch,
+		PipelineSourceBranches: branchName,
 		PipelineSourceId:       state.PipelinesSourceId,
 		Light:                  true,
 	})
@@ -32,7 +33,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	var syncStatus *requests.SyncStatus
 	for _, curStatus := range syncStatusResp.SyncStatuses {
-		if curStatus.PipelineSourceBranch == state.GitBranch &&
+		if curStatus.PipelineSourceBranch == branchName &&
 			curStatus.PipelineSourceId == state.PipelinesSourceId {
 			syncStatus = &curStatus
 			break
@@ -70,7 +71,7 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		return Status{
 			Type:            InProgress,
 			PipelinesStatus: "Waiting resources",
-			Message:         fmt.Sprintf("no resources for version id '%d' for branch '%s'", syncStatus.ResourceVersionId, state.GitBranch),
+			Message:         fmt.Sprintf("no resources for version id '%d' for branch '%s'", syncStatus.ResourceVersionId, branchName),
 		}
 	}
 
@@ -91,16 +92,17 @@ func (c *_002) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	}
 
 	return Status{
-		Message: fmt.Sprintf("Pipelines branch %s is synced to last commit hash", state.GitBranch),
+		Message: fmt.Sprintf("Pipelines branch %s is synced to last commit hash", branchName),
 		Type:    Done,
 	}
 }
 
 func (c *_002) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
+	branchName := ctx.Value(utils.BranchName).(string)
 
 	_, err := requests.SyncSource(httpClient, requests.SyncSourcesOptions{
-		Branch:           state.GitBranch,
+		Branch:           branchName,
 		ShouldSync:       true,
 		PipelineSourceId: state.PipelinesSourceId,
 	})

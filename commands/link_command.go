@@ -28,7 +28,7 @@ func getPipelinesLink(c *components.Context) error {
 	if err != nil {
 		return err
 	}
-	branchName, err := utils.GetCurrentBranchName()
+	branchName, err := utils.GetCurrentBranchName(c)
 	if err != nil {
 		return err
 	}

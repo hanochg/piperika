@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/jfrog/jfrog-cli-core/plugins/components"
 	"os"
 	"strings"
 )
 
-func GetCurrentBranchName() (string, error) {
+func GetCurrentBranchName(c *components.Context) (string, error) {
+	if value := c.GetStringFlagValue("branch"); value != "" {
+		return value, nil
+	}
+
 	repository, err := getLocalRepo()
 	if err != nil {
 		return "", err

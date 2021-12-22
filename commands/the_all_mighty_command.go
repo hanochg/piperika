@@ -26,7 +26,13 @@ func getArguments() []components.Argument {
 }
 
 func getFlags() []components.Flag {
-	return []components.Flag{plugins.GetServerIdFlag()}
+	return []components.Flag{
+		plugins.GetServerIdFlag(),
+		components.StringFlag{
+			Name:        "branch",
+			Description: "Specify the branch to build",
+		},
+	}
 }
 
 func action(c *components.Context) error {
@@ -47,8 +53,13 @@ func theAllMightyCommand(c *components.Context) error {
 	if err != nil {
 		return err
 	}
+	branch, err := utils.GetCurrentBranchName(c)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Hour)
 	defer cancel()
+	ctx = context.WithValue(ctx, utils.BranchName, branch)
 	ctx = context.WithValue(ctx, utils.BaseUiUrl, uiUrl)
 	ctx = context.WithValue(ctx, utils.HttpClientCtxKey, client)
 	ctx = context.WithValue(ctx, utils.DirConfigCtxKey, dirConfig)
