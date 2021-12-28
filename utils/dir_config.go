@@ -79,6 +79,46 @@ var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each di
 		DefaultStep:       "trigger_all",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
+	"/event": {
+		PipelineName:      "event_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/event/service": {
+		PipelineName:      "event_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/event/client-go": {
+		PipelineName:      "event_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/event/client-java": {
+		PipelineName:      "event_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/go-commons": {
+		PipelineName:      "go_commons_build",
+		DefaultStep:       "go_commons",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/integration": {
+		PipelineName:      "integration_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/integration/service": {
+		PipelineName:      "integration_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
+	"/integration/go-client": {
+		PipelineName:      "integration_build",
+		DefaultStep:       "trigger_all",
+		PipelinesSourceId: ArtifactoryPipelinesSourceId,
+	},
 }
 
 type DirConfig struct {
