@@ -51,17 +51,17 @@ var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each di
 	},
 	"/jfconnect/go-client": {
 		PipelineName:      "jfconnect_build",
-		DefaultStep:       "trigger_all",
+		DefaultStep:       "jfconnect_go_client",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 	"/jfconnect/java-client": {
 		PipelineName:      "jfconnect_build",
-		DefaultStep:       "trigger_all",
+		DefaultStep:       "jfconnect_java_client_mvn",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 	"/jfconnect/nodejs-client": {
 		PipelineName:      "jfconnect_build",
-		DefaultStep:       "trigger_all",
+		DefaultStep:       "jfconnect_nodejs_client",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 	"/metadata": {
