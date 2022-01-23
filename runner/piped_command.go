@@ -51,23 +51,25 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 		return err
 	}
 
-	var toErr *timeOutError
-	if errors.As(err, &toErr) {
-		terminal.UpdateFail(c.operationName, c.failState, "time-out", "")
-	} else {
-		terminal.UpdateFail(c.operationName, c.failState, lastStatus.Message, "")
-	}
+	terminal.UpdateFail(c.operationName, c.failState, "time-out", "")
 
 	err = c.TriggerOnFail(ctx, state)
 	if err != nil {
 		return terminal.UpdateUnrecoverable(c.operationName, err.Error(), "")
 	}
 
-	_, err = c.resolveCurrentState(ctx, state, c.newBackoffContext(ctx, false))
+	lastStatus, err = c.resolveCurrentState(ctx, state, c.newBackoffContext(ctx, false))
+	if err == nil {
+		return nil
+	}
 	if errors.As(err, &unrecErr) {
 		return err
 	}
-	return nil
+
+	if termErr := terminal.UpdateUnrecoverable(c.operationName, "timed-out after trigger once", lastStatus.Link); termErr != nil {
+		return termErr
+	}
+	return err
 }
 
 func (c *retryingPipedCommand) resolveCurrentState(ctx context.Context, state *command.PipedCommandState, backoffConfig backoff.BackOff) (command.Status, error) {
@@ -84,10 +86,6 @@ func (c *retryingPipedCommand) resolveCurrentState(ctx context.Context, state *c
 					backoffConfig.Reset()
 					terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, status.Link)
 				}
-			case command.Failed:
-				terminal.UpdateFail(c.operationName, status.PipelinesStatus, status.Message, status.Link)
-
-				return status, nil
 			case command.Unrecoverable:
 				return command.Status{}, &unrecoverableError{
 					Status:  status.PipelinesStatus,

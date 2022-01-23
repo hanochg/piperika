@@ -27,7 +27,6 @@ type StatusType string
 const (
 	InProgress    StatusType = "in-progress"
 	Done          StatusType = "done"
-	Failed        StatusType = "failed"
 	Unrecoverable StatusType = "unrecoverable"
 )
 
