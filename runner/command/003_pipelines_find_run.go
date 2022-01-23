@@ -22,129 +22,151 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
 	branchName := ctx.Value(utils.BranchName).(string)
+	forceFlag := ctx.Value(utils.ForceFlag).(bool)
 
-	pipeResp, err := requests.GetPipelines(httpClient, requests.GetPipelinesOptions{
-		SortBy:     "latestRunId",
-		FilterBy:   branchName,
-		Light:      true,
-		PipesNames: dirConfig.PipelineName,
-	})
+	pipelineId, err := getPipelineIdByBranch(httpClient, dirConfig.PipelineName, branchName)
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
-			Message: fmt.Sprintf("Failed fetching pipelines data: %v", err),
+			Message: err.Error(),
 		}
 	}
-	if len(pipeResp.Pipelines) == 0 {
+	if pipelineId == -1 {
 		return Status{
 			Type:            InProgress,
 			PipelinesStatus: "missing pipeline",
 			Message:         fmt.Sprintf("waiting for pipeline '%s' creation", dirConfig.PipelineName),
 		}
 	}
-	state.PipelineId = pipeResp.Pipelines[0].PipelineId
+	state.PipelineId = pipelineId
 
-	runResp, err := requests.GetRuns(httpClient, requests.GetRunsOptions{
-		PipelineIds: strconv.Itoa(state.PipelineId),
-		Limit:       10,
-		Light:       true,
-		StatusCodes: fmt.Sprintf("%s,%s,%s,%s", http.Ready.String(), http.Creating.String(), http.Waiting.String(), http.Processing.String()),
-		SortBy:      "runNumber",
-		SortOrder:   -1,
-	})
+	runs, err := getRuns(httpClient, pipelineId, forceFlag)
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
 			Message: fmt.Sprintf("failed fetching pipeline runs data: %v", err),
 		}
 	}
-	if len(runResp.Runs) == 0 {
+	if len(runs) == 0 {
+		status := "there are no runs"
+		if forceFlag {
+			status = "there are no processing runs"
+		}
 		return Status{
-			PipelinesStatus: "there are no active relevant runs",
+			PipelinesStatus: status,
 			Message:         "waiting for run creation",
 			Type:            InProgress,
 		}
 	}
 
-	runIds := make([]string, 0)
-	runNumbers := make([]string, 0)
-	for _, run := range runResp.Runs {
-		runIds = append(runIds, strconv.Itoa(run.RunId))
-		runNumbers = append(runNumbers, strconv.Itoa(run.RunNumber))
-	}
-	runResourceResp, err := requests.GetRunResourceVersions(httpClient, requests.GetRunResourcesOptions{
-		PipelineSourceIds: strconv.Itoa(state.PipelinesSourceId),
-		RunIds:            strings.Trim(strings.Join(runIds, ","), "[]"),
-		SortBy:            "resourceTypeCode",
-		SortOrder:         1,
-	})
+	activeRunId, err := getActiveRunId(httpClient, state.PipelinesSourceId, runs, state.HeadCommitSha)
 	if err != nil {
 		return Status{
-			Type:    InProgress,
-			Message: fmt.Sprintf("failed fetching run resources data: %v", err),
+			Type:    Unrecoverable,
+			Message: err.Error(),
 		}
 	}
 
-	if len(runResourceResp.Resources) == 0 {
+	if activeRunId == -1 {
 		return Status{
 			Type:            InProgress,
-			PipelinesStatus: "triggering new run",
-			Message:         "no resources exist for the resolved pipeline run",
+			PipelinesStatus: "Not exists",
+			Message:         "did not find any active runs",
 		}
 	}
 
-	activeRunIds := -1
-	for _, runResource := range runResourceResp.Resources {
-		if runResource.ResourceTypeCode != http.GitRepo {
-			continue
-		}
-		if runResource.ResourceVersionContentPropertyBag.CommitSha == state.HeadCommitSha {
-			activeRunIds = runResource.RunId
-			break
-		}
-	}
+	state.RunId = activeRunId
+	state.RunNumber = getRunNumberById(runs, activeRunId)
 
-	// Get the most recent run from the list
-	for i, runIdStr := range runIds {
-		runId, err := strconv.Atoi(runIdStr)
-		if err != nil {
-			return Status{
-				Type:            Failed,
-				PipelinesStatus: "triggering new run",
-				Message:         fmt.Sprintf("corrupted data for the resolved pipeline run, err %v", err),
-			}
-		}
-		runNumber, err := strconv.Atoi(runNumbers[i])
-		if err != nil {
-			return Status{
-				Type:            Failed,
-				PipelinesStatus: "triggering new run",
-				Message:         fmt.Sprintf("corrupted data for the resolved pipeline run, err %v", err),
-			}
-		}
-		if activeRunIds == runId {
-			state.RunId = runId
-			state.RunNumber = runNumber
-			break
-		}
-	}
-
-	msg := fmt.Sprintf("Run #%d was found", state.RunNumber)
 	if c.runTriggered {
-		msg = fmt.Sprintf("Run #%d was triggered", state.RunNumber)
-	}
-	if activeRunIds != -1 && state.RunId != -1 {
 		return Status{
-			Message: msg,
+			Message: fmt.Sprintf("Run #%d was triggered", state.RunNumber),
 			Type:    Done,
 		}
 	}
-
 	return Status{
-		Type:            InProgress,
-		PipelinesStatus: "Not exists",
-		Message:         "did not find any active runs",
+		Message: fmt.Sprintf("Run #%d was found", state.RunNumber),
+		Type:    Done,
 	}
+}
+
+func getRuns(httpClient http.PipelineHttpClient, pipelineId int, onlyRunning bool) ([]requests.Run, error) {
+	statusCode := ""
+	if onlyRunning {
+		statusCode = strings.Join([]string{http.Ready.String(), http.Creating.String(), http.Waiting.String(), http.Processing.String()}, ",")
+	}
+	runs, err := requests.GetRuns(httpClient, requests.GetRunsOptions{
+		PipelineIds: strconv.Itoa(pipelineId),
+		Limit:       100,
+		Light:       true,
+		StatusCodes: statusCode,
+		SortBy:      "runNumber",
+		SortOrder:   -1,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return runs.Runs, nil
+}
+
+func getRunNumberById(runs []requests.Run, runId int) int {
+	for _, run := range runs {
+		if run.RunId == runId {
+			return run.RunNumber
+		}
+	}
+	return -1
+}
+
+func getActiveRunId(httpClient http.PipelineHttpClient, pipelineSourceId int, runs []requests.Run, headCommitHash string) (int, error) {
+	runIds := make([]string, 0)
+	for _, run := range runs {
+		runIds = append(runIds, strconv.Itoa(run.RunId))
+	}
+	runIdsList := strings.Trim(strings.Join(runIds, ","), "[]")
+	runResourceResp, err := requests.GetRunResourceVersions(httpClient, requests.GetRunResourcesOptions{
+		Limit:             10000,
+		PipelineSourceIds: strconv.Itoa(pipelineSourceId),
+		RunIds:            runIdsList,
+		SortBy:            "createdAt",
+		SortOrder:         -1,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed fetching run resources data: %w", err)
+	}
+
+	activeRunIds := getActiveRunIdsByResources(runResourceResp.Resources, headCommitHash)
+	return activeRunIds, nil
+}
+
+func getActiveRunIdsByResources(resources []requests.RunResource, headCommit string) int {
+	for _, runResource := range resources {
+		if runResource.ResourceTypeCode == http.GitRepo &&
+			runResource.ResourceVersionContentPropertyBag.CommitSha == headCommit {
+			return runResource.RunId
+		}
+	}
+	return -1
+}
+
+func getPipelineIdByBranch(client http.PipelineHttpClient, pipelineName, branchName string) (int, error) {
+	pipeResp, err := requests.GetPipelines(client, requests.GetPipelinesOptions{
+		SortBy:     "latestRunId",
+		FilterBy:   branchName,
+		Light:      true,
+		PipesNames: pipelineName,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed fetching pipelines data: %w", err)
+	}
+
+	for _, pipeline := range pipeResp.Pipelines {
+		if pipeline.PipelineSourceBranch == branchName {
+			return pipeline.PipelineId, nil
+		}
+	}
+
+	return -1, nil
 }
 
 func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {

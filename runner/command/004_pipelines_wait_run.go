@@ -31,7 +31,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 
 	if len(stepsResp.Steps) == 0 {
 		return Status{
-			Type:    Failed,
+			Type:    Unrecoverable,
 			Message: fmt.Sprintf("No steps for pipeline run id '%d'", state.RunId),
 		}
 	}

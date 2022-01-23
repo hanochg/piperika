@@ -2,9 +2,9 @@ package runner
 
 import (
 	"context"
-	"fmt"
 	"github.com/hanochg/piperika/runner/command"
 	"github.com/hanochg/piperika/terminal"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -32,10 +32,17 @@ func RunPipe(ctx context.Context) error {
 
 		err = cmd.Run(ctx, pipedState)
 		if err != nil {
+			var unRecErr *unrecoverableError
+			if errors.As(err, &unRecErr) {
+				if termErr := terminal.UpdateUnrecoverable(cmd.OperationName(), unRecErr.Message, ""); termErr != nil {
+					return termErr
+				} else {
+					return nil
+				}
+			}
 			return err
 		}
 	}
 
-	fmt.Println()
 	return nil
 }

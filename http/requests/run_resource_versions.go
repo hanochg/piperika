@@ -10,6 +10,7 @@ const (
 )
 
 type GetRunResourcesOptions struct {
+	Limit             int    `url:"limit,omitempty"`             // Can be a csv list
 	PipelineSourceIds string `url:"pipelineSourceIds,omitempty"` // Can be a csv list
 	RunIds            string `url:"runIds,omitempty"`            // Can be a csv list
 	SortBy            string `url:"sortBy,omitempty"`

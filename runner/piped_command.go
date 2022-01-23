@@ -42,62 +42,90 @@ func (c *retryingPipedCommand) OperationName() string {
 }
 
 func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedCommandState) error {
-	err := c.retryResolveState(ctx, state, c.newBackoffContext(ctx, true))
+	lastStatus, err := c.resolveCurrentState(ctx, state, c.newBackoffContext(ctx, true))
 	if err == nil {
 		return nil
 	}
-	if errors.As(err, &unrecoverableError{}) {
+	var unrecErr *unrecoverableError
+	if errors.As(err, &unrecErr) {
 		return err
 	}
 
-	terminal.UpdateFail(c.operationName, c.failState, "", "")
+	var toErr *timeOutError
+	if errors.As(err, &toErr) {
+		terminal.UpdateFail(c.operationName, c.failState, "time-out", "")
+	} else {
+		terminal.UpdateFail(c.operationName, c.failState, lastStatus.Message, "")
+	}
 
 	err = c.TriggerOnFail(ctx, state)
 	if err != nil {
-		_ = terminal.UpdateUnrecoverable(c.operationName, err.Error(), "")
-
-		return err
+		return terminal.UpdateUnrecoverable(c.operationName, err.Error(), "")
 	}
 
-	return c.retryResolveState(ctx, state, c.newBackoffContext(ctx, false))
+	_, err = c.resolveCurrentState(ctx, state, c.newBackoffContext(ctx, false))
+	if errors.As(err, &unrecErr) {
+		return err
+	}
+	return nil
 }
 
-func (c *retryingPipedCommand) retryResolveState(ctx context.Context, state *command.PipedCommandState, backoffConfig backoff.BackOff) error {
-	return backoff.Retry(
-		func() error {
-			status := c.ResolveState(ctx, state)
+func (c *retryingPipedCommand) resolveCurrentState(ctx context.Context, state *command.PipedCommandState, backoffConfig backoff.BackOff) (command.Status, error) {
+	lastStatus := command.Status{}
+	status := command.Status{}
+	for currInterval := time.Nanosecond; currInterval != backoff.Stop; currInterval = backoffConfig.NextBackOff() {
+		select {
+		case <-time.Tick(currInterval):
+			status = c.ResolveState(ctx, state)
 
 			switch status.Type {
 			case command.InProgress:
-				terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, status.Link)
-				return fmt.Errorf("retrying %s: %s", c.operationName, status.Message)
+				if lastStatus.PipelinesStatus != status.PipelinesStatus && lastStatus.Message != status.Message {
+					backoffConfig.Reset()
+					terminal.UpdateStatus(c.operationName, status.PipelinesStatus, status.Message, status.Link)
+				}
 			case command.Failed:
 				terminal.UpdateFail(c.operationName, status.PipelinesStatus, status.Message, status.Link)
 
-				return backoff.Permanent(fmt.Errorf(status.Message))
+				return status, nil
 			case command.Unrecoverable:
-				err := terminal.UpdateUnrecoverable(c.operationName, status.Message, status.Link)
-				if err != nil {
-					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
+				return command.Status{}, &unrecoverableError{
+					Status:  status.PipelinesStatus,
+					Message: status.Message,
 				}
-
-				return backoff.Permanent(errors.Wrap(&unrecoverableError{}, status.Message))
 			case command.Done:
 				err := terminal.DoneMessage(c.operationName, status.Message, status.Link)
 				if err != nil {
-					return backoff.Permanent(errors.Wrap(&unrecoverableError{}, err.Error()))
+					return command.Status{}, err
 				}
-				return nil
+				return status, nil
 			default:
 				panic("Unexpected command type")
 			}
-		},
-		backoffConfig,
-	)
+		case <-ctx.Done():
+			return status, nil
+		}
+
+		lastStatus = status
+	}
+
+	return status, timeOutError{}
+}
+
+type timeOutError struct {
+}
+
+func (t timeOutError) Error() string {
+	return "Time-out"
 }
 
 type unrecoverableError struct {
-	error
+	Status  string
+	Message string
+}
+
+func (u *unrecoverableError) Error() string {
+	return fmt.Sprintf("Unrecoverable error: %s (%s)", u.Status, u.Message)
 }
 
 func (c *retryingPipedCommand) newBackoffContext(ctx context.Context, isFirst bool) backoff.BackOffContext {

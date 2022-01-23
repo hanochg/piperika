@@ -17,6 +17,7 @@ type PipedCommandState struct {
 type Status struct {
 	PipelinesStatus string
 	Message         string
+	DynamicMessage  func(size int)
 	Type            StatusType
 	Link            string
 }

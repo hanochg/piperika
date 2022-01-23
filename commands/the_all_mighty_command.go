@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/runner"
 	"github.com/hanochg/piperika/utils"
@@ -31,6 +32,10 @@ func getFlags() []components.Flag {
 		components.StringFlag{
 			Name:        "branch",
 			Description: "Specify the branch to build",
+		},
+		components.BoolFlag{
+			Name:        "force",
+			Description: "Force trigger if there is no processing runs",
 		},
 	}
 }
@@ -63,5 +68,8 @@ func theAllMightyCommand(c *components.Context) error {
 	ctx = context.WithValue(ctx, utils.BaseUiUrl, uiUrl)
 	ctx = context.WithValue(ctx, utils.HttpClientCtxKey, client)
 	ctx = context.WithValue(ctx, utils.DirConfigCtxKey, dirConfig)
-	return runner.RunPipe(ctx)
+	ctx = context.WithValue(ctx, utils.ForceFlag, c.GetBoolFlagValue("force"))
+	err = runner.RunPipe(ctx)
+	fmt.Println()
+	return err
 }

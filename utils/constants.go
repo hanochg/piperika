@@ -6,4 +6,5 @@ const (
 	BaseUiUrl                    = "baseUiUrl"
 	BranchName                   = "branchName"
 	DirConfigCtxKey              = "dirConfig"
+	ForceFlag                    = "forceFlag"
 )
