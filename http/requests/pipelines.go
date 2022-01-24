@@ -39,5 +39,4 @@ func GetPipelines(client http.PipelineHttpClient, options GetPipelinesOptions) (
 	res := &PipelinesLookupResponse{}
 	err = json.Unmarshal(body, &res.Pipelines)
 	return res, err
-
 }
