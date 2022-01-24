@@ -21,13 +21,20 @@ type GetRunsOptions struct {
 }
 
 type Run struct {
-	RunId            int             `json:"id"`
-	PipelineId       int             `json:"pipelineId"`
-	PipelineSourceId int             `json:"pipelineSourceId"`
-	RunNumber        int             `json:"runNumber"`
-	StatusCode       http.StatusCode `json:"statusCode"`
-	StartedAt        string          `json:"startedAt"`
-	EndedAt          string          `json:"endedAt"`
+	RunId             int               `json:"id"`
+	PipelineId        int               `json:"pipelineId"`
+	PipelineSourceId  int               `json:"pipelineSourceId"`
+	RunNumber         int               `json:"runNumber"`
+	StatusCode        http.StatusCode   `json:"statusCode"`
+	StartedAt         string            `json:"startedAt"`
+	EndedAt           string            `json:"endedAt"`
+	StaticPropertyBag StaticPropertyBag `json:"staticPropertyBag"`
+}
+
+type StaticPropertyBag struct {
+	TriggeredByUserName     string `json:"triggeredByUserName"`
+	TriggeredByResourceName string `json:"triggeredByResourceName"`
+	SignedPipelinesEnabled  bool   `json:"signedPipelinesEnabled"`
 }
 
 type RunsResponse struct {

@@ -10,14 +10,26 @@ const (
 )
 
 type GetStepsOptions struct {
-	RunIds string `url:"runIds,omitempty"`
-	Limit  int    `url:"limit,omitempty"`
+	RunIds      string `url:"runIds,omitempty"`
+	Limit       int    `url:"limit,omitempty"`
+	PipelineIds string `url:"pipelineIds,omitempty"`
+	Names       string `url:"names,omitempty"`
 }
 
 type Step struct {
-	Id         int             `json:"id"`
-	Name       string          `json:"name"`
-	StatusCode http.StatusCode `json:"statusCode"`
+	Id                int               `json:"id"`
+	Name              string            `json:"name"`
+	ConfigPropertyBag ConfigPropertyBag `json:"configPropertyBag"`
+	StatusCode        http.StatusCode   `json:"statusCode"`
+}
+
+type ConfigPropertyBag struct {
+	EnvironmentVariables []EnvironmentVariable `json:"environmentVariables"`
+}
+
+type EnvironmentVariable struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type StepsResponse struct {

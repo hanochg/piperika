@@ -23,5 +23,6 @@ func getCommands() []components.Command {
 	return []components.Command{
 		commands.GetCommand(),
 		commands.GetLinkCommand(),
+		commands.PrintReport(),
 	}
 }
