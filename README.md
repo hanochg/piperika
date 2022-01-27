@@ -50,8 +50,12 @@ JFrog Pipelines only accepts Access Tokens for authentication and authorization.
 
 ### Commands
 `jf piperika run` (or just `jf piperika r`)</br></br>
-It will validate that your git branch is ready to run, it will trigger a run if needed then it will attach to the Pipelines run and show you the progress.
+It will: 
+1. Validate that your git branch is ready to run.
+2. Trigger a run if needed.
+3. Attach to the Pipelines run and show you the progress.
 </br></br>
+
 Output example for a successful Pipelines run:
 
 <img src="assets/output_successful_run.png" alt="drawing"/>
