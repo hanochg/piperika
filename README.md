@@ -45,12 +45,8 @@ $ make install
 ## Usage
 ### Configuration
 JFrog Pipelines only accepts Access Tokens for authentication and authorization.</br>
-1. create an identity token or admin token in [Artifactory UI](https://jfrog.com/knowledge-base/how-to-generate-an-access-token-video/). </br>
-2. Create a new JFrog CLI profile with
-```shell
-$ jfrog config add
-```
-Fill up all the [server details](https://jfrog.com/knowledge-base/how-to-configure-jfrog-cli-to-work-with-artifactory-video/) and when asked, insert the Access Token you generated in the first step.</br>
+1. Create an identity token or admin token via [Artifactory UI](https://jfrog.com/knowledge-base/how-to-generate-an-access-token-video/). </br>
+2. Create a new [JFrog CLI profile](https://jfrog.com/knowledge-base/how-to-configure-jfrog-cli-to-work-with-artifactory-video/), and when asked, insert the Access Token you generated in the first step.</br>
 
 ### Commands
 `jf piperika run` (or just `jf piperika r`)</br></br>
