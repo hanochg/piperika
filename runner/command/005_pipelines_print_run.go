@@ -22,7 +22,7 @@ type _005 struct{}
 
 func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
+	dirConfig := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 	baseUiUrl := ctx.Value(utils.BaseUiUrl).(string)
 	branchName := ctx.Value(utils.BranchName).(string)
 

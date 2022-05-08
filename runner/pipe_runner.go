@@ -9,15 +9,15 @@ import (
 )
 
 var (
-	shortBackoffConfig  = backoffConfig{interval: 5 * time.Second, firstTimeout: 15 * time.Second, afterTriggerTimeout: 5 * time.Minute}
-	mediumBackoffConfig = backoffConfig{interval: 5 * time.Second, firstTimeout: 30 * time.Second, afterTriggerTimeout: 15 * time.Minute}
+	shortBackoffConfig  = backoffConfig{interval: 3 * time.Second, firstTimeout: 3 * time.Second, afterTriggerTimeout: 5 * time.Minute}
+	mediumBackoffConfig = backoffConfig{interval: 5 * time.Second, firstTimeout: 5 * time.Second, afterTriggerTimeout: 15 * time.Minute}
 	longBackoffConfig   = backoffConfig{interval: 10 * time.Second, firstTimeout: 2 * time.Hour, afterTriggerTimeout: 1 * time.Hour}
 
 	cmds = []pipedCommand{
 		newRetryingPipedCommand("Git state", "", command.New001ValidateGitState(), shortBackoffConfig),
-		newRetryingPipedCommand("Wait or trigger pipelines sources sync", "sync pipelines sources", command.New002PipelinesSourcesBranchSync(), mediumBackoffConfig),
+		newRetryingPipedCommand("Wait or trigger pipelines sources sync", "sync pipelines sources", command.New002PipelinesSourcesBranchSync(), shortBackoffConfig),
 		newRetryingPipedCommand("Finding active run or trigger", "trigger a run", command.New003PipelinesFindRun(), shortBackoffConfig),
-		newRetryingPipedCommand("Wait for run to finish", "", command.New004PipelinesWaitRun(), shortBackoffConfig),
+		newRetryingPipedCommand("Wait for run to finish", "", command.New004PipelinesWaitRun(), mediumBackoffConfig),
 		newRetryingPipedCommand("Run results", "", command.New005PipelinesPrintRun(), longBackoffConfig),
 	}
 )

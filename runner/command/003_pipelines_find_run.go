@@ -20,7 +20,7 @@ type _003 struct {
 
 func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
+	dirConfig := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 	branchName := ctx.Value(utils.BranchName).(string)
 	forceFlag := ctx.Value(utils.ForceFlag).(bool)
 
@@ -171,7 +171,7 @@ func getPipelineIdByBranch(client http.PipelineHttpClient, pipelineName, branchN
 
 func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	dirConfig := ctx.Value(utils.DirConfigCtxKey).(*utils.DirConfig)
+	dirConfig := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 
 	pipeSteps, err := requests.GetPipelinesSteps(httpClient, requests.GetPipelinesStepsOptions{
 		PipelineIds:       strconv.Itoa(state.PipelineId),

@@ -19,7 +19,7 @@ func GetLinkCommand() components.Command {
 }
 
 func getPipelinesLink(c *components.Context) error {
-	dirConfig, err := utils.GetDirConfig()
+	dirConfig, err := utils.GetConfigurations()
 	if err != nil {
 		return err
 	}

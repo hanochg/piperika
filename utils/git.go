@@ -6,7 +6,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
 	"os"
-	"strings"
 )
 
 func GetCurrentBranchName(c *components.Context) (string, error) {
@@ -72,22 +71,4 @@ func GetRootDir() (string, error) {
 		return "", err
 	}
 	return worktree.Filesystem.Root(), nil
-}
-
-func GetRelativeDir() (string, error) {
-	rootDir, err := GetRootDir()
-	if err != nil {
-		return "", err
-	}
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	if !strings.HasPrefix(wd, rootDir) {
-		return "", fmt.Errorf("not on git directory. git directory %s, pwd %s", rootDir, wd)
-	}
-
-	return wd[len(rootDir):], nil
 }
