@@ -51,7 +51,7 @@ func (c *retryingPipedCommand) Run(ctx context.Context, state *command.PipedComm
 		return err
 	}
 
-	terminal.UpdateFail(c.operationName, c.failState, "time-out", "")
+	terminal.UpdateFail(c.operationName, c.failState, "fail-over step", "")
 
 	err = c.TriggerOnFail(ctx, state)
 	if err != nil {
