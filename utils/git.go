@@ -55,7 +55,8 @@ func getLocalRepo() (*git.Repository, error) {
 	}
 
 	repository, err := git.PlainOpenWithOptions(wd, &git.PlainOpenOptions{
-		DetectDotGit: true,
+		EnableDotGitCommonDir: true,
+		DetectDotGit:          true,
 	})
 	return repository, nil
 }
