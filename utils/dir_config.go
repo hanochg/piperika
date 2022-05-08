@@ -86,17 +86,17 @@ var constDirConfig = map[string]*DirConfig{ // TODO use .rc file like in each di
 	},
 	"/event/service": {
 		PipelineName:      "event_build",
-		DefaultStep:       "trigger_all",
+		DefaultStep:       "event_service",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 	"/event/client-go": {
 		PipelineName:      "event_build",
-		DefaultStep:       "trigger_all",
+		DefaultStep:       "event_go_client",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 	"/event/client-java": {
 		PipelineName:      "event_build",
-		DefaultStep:       "trigger_all",
+		DefaultStep:       "event_java_client",
 		PipelinesSourceId: ArtifactoryPipelinesSourceId,
 	},
 	"/go-commons": {
