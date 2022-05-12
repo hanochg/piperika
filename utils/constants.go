@@ -5,6 +5,6 @@ const (
 	HttpClientCtxKey             = "httpClient"
 	BaseUiUrl                    = "baseUiUrl"
 	BranchName                   = "branchName"
-	DirConfigCtxKey              = "dirConfig"
+	ConfigCtxKey                 = "configurations"
 	ForceFlag                    = "forceFlag"
 )

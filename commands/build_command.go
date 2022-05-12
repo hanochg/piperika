@@ -13,9 +13,9 @@ import (
 
 func GetCommand() components.Command {
 	return components.Command{
-		Name:        "run",
-		Description: "Start a Pipelines cycle with your Git commit and branch",
-		Aliases:     []string{"r"},
+		Name:        "build",
+		Description: "Start a Pipelines build cycle with your Git commit and branch",
+		Aliases:     []string{"b"},
 		Arguments:   getArguments(),
 		Flags:       getFlags(),
 		Action:      action,
@@ -49,7 +49,7 @@ func theAllMightyCommand(c *components.Context) error {
 	if err != nil {
 		return err
 	}
-	dirConfig, err := utils.GetDirConfig()
+	dirConfig, err := utils.GetConfigurations()
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func theAllMightyCommand(c *components.Context) error {
 	ctx = context.WithValue(ctx, utils.BranchName, branch)
 	ctx = context.WithValue(ctx, utils.BaseUiUrl, uiUrl)
 	ctx = context.WithValue(ctx, utils.HttpClientCtxKey, client)
-	ctx = context.WithValue(ctx, utils.DirConfigCtxKey, dirConfig)
+	ctx = context.WithValue(ctx, utils.ConfigCtxKey, dirConfig)
 	ctx = context.WithValue(ctx, utils.ForceFlag, c.GetBoolFlagValue("force"))
 	err = runner.RunPipe(ctx)
 	fmt.Println()

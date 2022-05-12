@@ -49,7 +49,7 @@ JFrog Pipelines only accepts Access Tokens for authentication and authorization.
 2. Create a new [JFrog CLI profile](https://jfrog.com/knowledge-base/how-to-configure-jfrog-cli-to-work-with-artifactory-video/), and when asked, insert the Access Token you generated in the first step.</br>
 
 ### Commands
-`jf piperika run` (or just `jf piperika r`)</br></br>
+`jf piperika build` (or just `jf piperika b`)</br></br>
 It will: 
 1. Validate that your git branch is ready to run.
 2. Trigger a run if needed.
