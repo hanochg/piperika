@@ -5,7 +5,7 @@ const (
 	HttpClientCtxKey                     = "httpClient"
 	BaseUiUrl                            = "baseUiUrl"
 	BranchName                           = "branchName"
-	DirConfigCtxKey                      = "dirConfig"
+	ConfigCtxKey                         = "configurations"
 	ForceFlag                            = "forceFlag"
 	InfraReportLinksStep                 = "release_process_links"
 	InfraReportEnvVersionSuffix          = "_VERSION"
