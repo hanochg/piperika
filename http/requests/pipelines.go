@@ -10,11 +10,13 @@ const (
 )
 
 type GetPipelinesOptions struct {
-	SortBy     string `url:"sortBy,omitempty"`
-	FilterBy   string `url:"filterBy,omitempty"`
-	Light      bool   `url:"light,omitempty"`
-	Limit      int    `url:"limit,omitempty"`
-	PipesNames string `url:"names,omitempty"`
+	SortBy                 string `url:"sortBy,omitempty"`
+	SortOrder              int    `url:"sortOrder,omitempty"`
+	FilterBy               string `url:"filterBy,omitempty"`
+	Light                  bool   `url:"light,omitempty"`
+	Limit                  int    `url:"limit,omitempty"`
+	PipesNames             string `url:"names,omitempty"`
+	PipelineSourceBranches string `url:"pipelineSourceBranches,omitempty"`
 }
 
 type Pipeline struct {
@@ -39,5 +41,4 @@ func GetPipelines(client http.PipelineHttpClient, options GetPipelinesOptions) (
 	res := &PipelinesLookupResponse{}
 	err = json.Unmarshal(body, &res.Pipelines)
 	return res, err
-
 }
