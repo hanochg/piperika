@@ -19,7 +19,7 @@ func GetLinkCommand() components.Command {
 }
 
 func getPipelinesLink(c *components.Context) error {
-	dirConfig, err := utils.GetConfigurations()
+	config, err := utils.GetConfigurations()
 	if err != nil {
 		return err
 	}
@@ -33,6 +33,6 @@ func getPipelinesLink(c *components.Context) error {
 		return err
 	}
 	link := fmt.Sprintf("%s ",
-		utils.GetPipelinesBranchURL(uiUrl, dirConfig.PipelineName, branchName))
+		utils.GetPipelinesBranchURL(uiUrl, config.PipelineName, "", branchName))
 	return terminal.DoneMessage("Link", "", link)
 }

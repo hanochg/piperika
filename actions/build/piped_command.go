@@ -1,10 +1,10 @@
-package runner
+package build
 
 import (
 	"context"
 	"fmt"
 	"github.com/cenkalti/backoff"
-	"github.com/hanochg/piperika/runner/command"
+	"github.com/hanochg/piperika/actions/build/command"
 	"github.com/hanochg/piperika/terminal"
 	"github.com/pkg/errors"
 	"time"

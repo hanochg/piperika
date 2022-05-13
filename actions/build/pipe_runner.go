@@ -1,8 +1,8 @@
-package runner
+package build
 
 import (
 	"context"
-	"github.com/hanochg/piperika/runner/command"
+	"github.com/hanochg/piperika/actions/build/command"
 	"github.com/hanochg/piperika/terminal"
 	"github.com/pkg/errors"
 	"time"

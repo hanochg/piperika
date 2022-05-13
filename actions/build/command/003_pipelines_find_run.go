@@ -20,11 +20,11 @@ type _003 struct {
 
 func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	dirConfig := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
+	config := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 	branchName := ctx.Value(utils.BranchName).(string)
 	forceFlag := ctx.Value(utils.ForceFlag).(bool)
 
-	pipelineId, err := getPipelineIdByBranch(httpClient, dirConfig.PipelineName, branchName)
+	pipelineId, err := getPipelineIdByBranch(httpClient, config.PipelineName, branchName)
 	if err != nil {
 		return Status{
 			Type:    Unrecoverable,
@@ -35,7 +35,7 @@ func (c *_003) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 		return Status{
 			Type:            InProgress,
 			PipelinesStatus: "missing pipeline",
-			Message:         fmt.Sprintf("waiting for pipeline '%s' creation", dirConfig.PipelineName),
+			Message:         fmt.Sprintf("waiting for pipeline '%s' creation", config.PipelineName),
 		}
 	}
 	state.PipelineId = pipelineId
@@ -171,18 +171,18 @@ func getPipelineIdByBranch(client http.PipelineHttpClient, pipelineName, branchN
 
 func (c *_003) TriggerOnFail(ctx context.Context, state *PipedCommandState) error {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	dirConfig := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
+	config := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 
 	pipeSteps, err := requests.GetPipelinesSteps(httpClient, requests.GetPipelinesStepsOptions{
 		PipelineIds:       strconv.Itoa(state.PipelineId),
 		PipelineSourceIds: strconv.Itoa(state.PipelinesSourceId),
-		Names:             dirConfig.DefaultStep,
+		Names:             config.DefaultStep,
 	})
 	if err != nil {
 		return fmt.Errorf("failed fetching pipeline steps: %w", err)
 	}
 	if len(pipeSteps.Steps) == 0 {
-		return fmt.Errorf("no pipeline step called '%s'", dirConfig.DefaultStep)
+		return fmt.Errorf("no pipeline step called '%s'", config.DefaultStep)
 	}
 	c.runTriggered = true
 	return requests.TriggerPipelinesStep(httpClient, pipeSteps.Steps[0].Id)

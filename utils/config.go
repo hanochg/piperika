@@ -12,9 +12,20 @@ import (
 var PIPERIKA_CONFIG_FILE = ".pipr"
 
 type Configurations struct {
-	PipelineName      string `json:"pipeline_name,omitempty"`
-	DefaultStep       string `json:"default_step,omitempty"`
-	PipelinesSourceId int    `json:"pipelines_source_id,omitempty"`
+	PipelineName      string   `json:"pipeline_name,omitempty"`
+	DefaultStep       string   `json:"default_step,omitempty"`
+	PipelinesSourceId int      `json:"pipelines_source_id,omitempty"`
+	Reports           *Reports `json:"reports,omitempty"`
+}
+
+type Reports struct {
+	PipesNames                  []string `json:"report_names,omitempty"`
+	PostReleasePipeSuffix       string   `json:"post_release_pipe_suffix,omitempty"`
+	BuildPipeSuffix             string   `json:"build_pipe_suffix,omitempty"`
+	ReleasePipeSuffix           string   `json:"release_pipe_suffix,omitempty"`
+	VersionSuffix               string   `json:"version_suffix,omitempty"`
+	AdHocReleaseBranchName      string   `json:"adhoc_release_branch_name_message,omitempty"`
+	AdHocReleaseBranchLinksStep string   `json:"adhoc_release_links_step,omitempty"`
 }
 
 func GetConfigurations() (*Configurations, error) {
