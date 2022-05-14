@@ -1,9 +1,10 @@
 package utils
 
 const (
-	HttpClientCtxKey = "httpClient"
-	BaseUiUrl        = "baseUiUrl"
-	BranchName       = "branchName"
-	ConfigCtxKey     = "configurations"
-	ForceFlag        = "forceFlag"
+	HttpClientCtxKey  = "httpClient"
+	BaseUiUrl         = "baseUiUrl"
+	BranchName        = "branchName"
+	ConfigCtxKey      = "configurations"
+	ProjectNameCtxKey = "projectNameCtxKey"
+	ForceFlag         = "forceFlag"
 )

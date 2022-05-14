@@ -22,6 +22,7 @@ type ServiceReport struct {
 	postReleasePipeline    PipelineResult
 	adHocReleaseBranchName string
 	serviceVersion         string
+	projectName            string
 	config                 *utils.Reports
 }
 
@@ -40,6 +41,7 @@ func ReportsGathering(ctx context.Context) error {
 	config := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 	branchName := ctx.Value(utils.BranchName).(string)
 	baseUiUrl := ctx.Value(utils.BaseUiUrl).(string)
+	projectName := ctx.Value(utils.ProjectNameCtxKey).(string)
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	err := validateConfigurations(config)
@@ -47,7 +49,7 @@ func ReportsGathering(ctx context.Context) error {
 		return err
 	}
 
-	reportsToPrint := buildServicesReportStructs(httpClient, baseUiUrl, branchName, config)
+	reportsToPrint := buildServicesReportStructs(httpClient, baseUiUrl, branchName, projectName, config)
 	wg := sync.WaitGroup{}
 	mutex := sync.Mutex{}
 	for i := 0; i < len(reportsToPrint); i++ {
@@ -81,7 +83,7 @@ func validateConfigurations(config *utils.Configurations) error {
 	return nil
 }
 
-func buildServicesReportStructs(httpClient http.PipelineHttpClient, baseUrl string, branch string, config *utils.Configurations) []*ServiceReport {
+func buildServicesReportStructs(httpClient http.PipelineHttpClient, baseUrl string, branch string, projectName string, config *utils.Configurations) []*ServiceReport {
 	var rep []*ServiceReport
 	for _, curPipeName := range config.Reports.PipesNames {
 		el := &ServiceReport{
@@ -90,6 +92,7 @@ func buildServicesReportStructs(httpClient http.PipelineHttpClient, baseUrl stri
 			config:          config.Reports,
 			milestoneBranch: branch,
 			serviceName:     curPipeName,
+			projectName:     projectName,
 		}
 		rep = append(rep, el)
 	}
@@ -129,7 +132,7 @@ func (sr *ServiceReport) getReleasePipelineReport() error {
 	if err != nil {
 		return err
 	}
-	sr.releasePipeline.pipeUrl = utils.GetPipelinesBranchURL(sr.BaseUrl, sr.serviceName, sr.config.ReleasePipeSuffix, sr.milestoneBranch)
+	sr.releasePipeline.pipeUrl = utils.GetPipelinesBranchURL(sr.BaseUrl, sr.serviceName, sr.config.ReleasePipeSuffix, sr.milestoneBranch, sr.projectName)
 	return nil
 }
 
@@ -138,7 +141,7 @@ func (sr *ServiceReport) getBuildPipelineReport() error {
 	if err != nil {
 		return err
 	}
-	sr.buildPipeline.pipeUrl = utils.GetPipelinesBranchURL(sr.BaseUrl, sr.serviceName, sr.config.BuildPipeSuffix, sr.adHocReleaseBranchName)
+	sr.buildPipeline.pipeUrl = utils.GetPipelinesBranchURL(sr.BaseUrl, sr.serviceName, sr.config.BuildPipeSuffix, sr.adHocReleaseBranchName, sr.projectName)
 	return nil
 }
 
@@ -147,7 +150,7 @@ func (sr *ServiceReport) getPostReleasePipeline() error {
 	if err != nil {
 		return err
 	}
-	sr.postReleasePipeline.pipeUrl = utils.GetPipelinesBranchURL(sr.BaseUrl, sr.serviceName, sr.config.PostReleasePipeSuffix, sr.adHocReleaseBranchName)
+	sr.postReleasePipeline.pipeUrl = utils.GetPipelinesBranchURL(sr.BaseUrl, sr.serviceName, sr.config.PostReleasePipeSuffix, sr.adHocReleaseBranchName, sr.projectName)
 	return nil
 }
 

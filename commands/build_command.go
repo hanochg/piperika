@@ -64,11 +64,17 @@ func buildCommand(c *components.Context) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Hour)
 	defer cancel()
+	projName, err := utils.GetProjectNameForSource(client, config.PipelinesSourceId)
+	if err != nil {
+		return err
+	}
+
 	ctx = context.WithValue(ctx, utils.BranchName, branch)
 	ctx = context.WithValue(ctx, utils.BaseUiUrl, uiUrl)
 	ctx = context.WithValue(ctx, utils.HttpClientCtxKey, client)
 	ctx = context.WithValue(ctx, utils.ConfigCtxKey, config)
 	ctx = context.WithValue(ctx, utils.ForceFlag, c.GetBoolFlagValue("force"))
+	ctx = context.WithValue(ctx, utils.ProjectNameCtxKey, projName)
 	err = build.RunPipe(ctx)
 	fmt.Println()
 	return err

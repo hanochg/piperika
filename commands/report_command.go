@@ -41,7 +41,6 @@ func printReport(c *components.Context) error {
 	if err != nil {
 		return err
 	}
-
 	uiUrl, err := utils.GetUIBaseUrl(c)
 	if err != nil {
 		return err
@@ -50,11 +49,17 @@ func printReport(c *components.Context) error {
 	if err != nil {
 		return err
 	}
+	projName, err := utils.GetProjectNameForSource(client, config.PipelinesSourceId)
+	if err != nil {
+		return err
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	ctx = context.WithValue(ctx, utils.BranchName, branch)
 	ctx = context.WithValue(ctx, utils.BaseUiUrl, uiUrl)
 	ctx = context.WithValue(ctx, utils.HttpClientCtxKey, client)
 	ctx = context.WithValue(ctx, utils.ConfigCtxKey, config)
+	ctx = context.WithValue(ctx, utils.ProjectNameCtxKey, projName)
 	return report.ReportsGathering(ctx)
 }

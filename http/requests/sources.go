@@ -22,6 +22,7 @@ type SyncSourcesOptions struct {
 
 type Source struct {
 	Id                 int             `json:"id"`
+	ProjectId          int             `json:"projectId"`
 	RepositoryFullName string          `json:"repositoryFullName"`
 	LastSyncStatusCode http.StatusCode `json:"lastSyncStatusCode"`
 	IsSyncing          bool            `json:"isSyncing"`
@@ -35,7 +36,7 @@ type SourcesResponse struct {
 	Sources []Source
 }
 
-func SyncSource(client http.PipelineHttpClient, options SyncSourcesOptions) (*SourcesResponse, error) {
+func SyncOrGetSource(client http.PipelineHttpClient, options SyncSourcesOptions) (*SourcesResponse, error) {
 	body, err := client.SendGet(sourcesUrl+fmt.Sprintf("/%d", options.PipelineSourceId), http.ClientOptions{Query: options})
 	if err != nil {
 		return nil, err
