@@ -3,8 +3,8 @@ package commands
 import (
 	"context"
 	"fmt"
+	"github.com/hanochg/piperika/actions/build"
 	"github.com/hanochg/piperika/http"
-	"github.com/hanochg/piperika/runner"
 	"github.com/hanochg/piperika/utils"
 	"github.com/jfrog/jfrog-cli-core/plugins"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
@@ -41,15 +41,15 @@ func getFlags() []components.Flag {
 }
 
 func action(c *components.Context) error {
-	return theAllMightyCommand(c)
+	return buildCommand(c)
 }
 
-func theAllMightyCommand(c *components.Context) error {
+func buildCommand(c *components.Context) error {
 	client, err := http.NewPipelineHttp(c)
 	if err != nil {
 		return err
 	}
-	dirConfig, err := utils.GetConfigurations()
+	config, err := utils.GetConfigurations()
 	if err != nil {
 		return err
 	}
@@ -64,12 +64,18 @@ func theAllMightyCommand(c *components.Context) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Hour)
 	defer cancel()
+	projName, err := utils.GetProjectNameForSource(client, config.PipelinesSourceId)
+	if err != nil {
+		return err
+	}
+
 	ctx = context.WithValue(ctx, utils.BranchName, branch)
 	ctx = context.WithValue(ctx, utils.BaseUiUrl, uiUrl)
 	ctx = context.WithValue(ctx, utils.HttpClientCtxKey, client)
-	ctx = context.WithValue(ctx, utils.ConfigCtxKey, dirConfig)
+	ctx = context.WithValue(ctx, utils.ConfigCtxKey, config)
 	ctx = context.WithValue(ctx, utils.ForceFlag, c.GetBoolFlagValue("force"))
-	err = runner.RunPipe(ctx)
+	ctx = context.WithValue(ctx, utils.ProjectNameCtxKey, projName)
+	err = build.RunPipe(ctx)
 	fmt.Println()
 	return err
 }

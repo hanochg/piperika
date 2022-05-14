@@ -22,9 +22,10 @@ type _005 struct{}
 
 func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Status {
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
-	dirConfig := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
+	config := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 	baseUiUrl := ctx.Value(utils.BaseUiUrl).(string)
 	branchName := ctx.Value(utils.BranchName).(string)
+	projectName := ctx.Value(utils.ProjectNameCtxKey).(string)
 
 	runStatusCode, err := runStatus(httpClient, state)
 	if err != nil {
@@ -109,7 +110,7 @@ func (c *_005) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	return Status{
 		Message: outputMsg,
 		Link: fmt.Sprintf("%s ",
-			utils.GetPipelinesRunURL(baseUiUrl, dirConfig.PipelineName, dirConfig.DefaultStep, state.RunNumber, branchName)),
+			utils.GetPipelinesRunURL(baseUiUrl, config.PipelineName, config.DefaultStep, state.RunNumber, branchName, projectName)),
 		Type: Done,
 	}
 }

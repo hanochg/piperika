@@ -101,7 +101,7 @@ func (c *_002) TriggerOnFail(ctx context.Context, state *PipedCommandState) erro
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	branchName := ctx.Value(utils.BranchName).(string)
 
-	_, err := requests.SyncSource(httpClient, requests.SyncSourcesOptions{
+	_, err := requests.SyncOrGetSource(httpClient, requests.SyncSourcesOptions{
 		Branch:           branchName,
 		ShouldSync:       true,
 		PipelineSourceId: state.PipelinesSourceId,

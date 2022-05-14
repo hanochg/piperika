@@ -13,9 +13,9 @@ func New001ValidateGitState() *_001 {
 type _001 struct{}
 
 func (c *_001) ResolveState(ctx context.Context, state *PipedCommandState) Status {
-	dirConfig := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
+	config := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 	branchName := ctx.Value(utils.BranchName).(string)
-	state.PipelinesSourceId = dirConfig.PipelinesSourceId
+	state.PipelinesSourceId = config.PipelinesSourceId
 
 	localCommitHash, err := utils.GetCommitHash(branchName, false)
 	if err != nil {

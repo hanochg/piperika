@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/terminal"
 	"github.com/hanochg/piperika/utils"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
@@ -19,7 +20,12 @@ func GetLinkCommand() components.Command {
 }
 
 func getPipelinesLink(c *components.Context) error {
-	dirConfig, err := utils.GetConfigurations()
+	client, err := http.NewPipelineHttp(c)
+	if err != nil {
+		return err
+	}
+
+	config, err := utils.GetConfigurations()
 	if err != nil {
 		return err
 	}
@@ -32,7 +38,11 @@ func getPipelinesLink(c *components.Context) error {
 	if err != nil {
 		return err
 	}
+	projName, err := utils.GetProjectNameForSource(client, config.PipelinesSourceId)
+	if err != nil {
+		return err
+	}
 	link := fmt.Sprintf("%s ",
-		utils.GetPipelinesBranchURL(uiUrl, dirConfig.PipelineName, branchName))
+		utils.GetPipelinesBranchURL(uiUrl, config.PipelineName, "", branchName, projName))
 	return terminal.DoneMessage("Link", "", link)
 }
