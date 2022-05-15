@@ -44,12 +44,22 @@ $ make install
 
 ## Usage
 ### Configuration
-JFrog Pipelines only accepts Access Tokens for authentication and authorization.</br>
-1. Create an identity token or admin token via [Artifactory UI](https://jfrog.com/knowledge-base/how-to-generate-an-access-token-video/). </br>
-2. Create a new [JFrog CLI profile](https://jfrog.com/knowledge-base/how-to-configure-jfrog-cli-to-work-with-artifactory-video/), and when asked, insert the Access Token you generated in the first step.</br>
+JFrog Pipelines ONLY accepts Access Tokens for authentication and authorization.</br>
+If you set your JFrog CLI with Username/Password, you will need to create a new profile that uses an identity token: 
+1. Create an identity token via [Artifactory UI](https://www.jfrog.com/confluence/display/JFROG/User+Profile#UserProfile-IdentityTokenidentitytoken). </br>
+2. Create a new [JFrog CLI profile](https://jfrog.com/knowledge-base/how-to-configure-jfrog-cli-to-work-with-artifactory-video/), and when asked for Access Token, use the generated identity token above.</br>
+You can also create a new JFrog CLI profile via command line:
+```shell
+$ jf c add pipr-profile --url='https://myarti.com' --interactive=false --access-token 'your-identity-token'
+$ jf c use pipr-profile
+```
 
 ### Commands
-`jf piperika build` (or just `jf piperika b`)</br></br>
+#### Build
+```shell
+$ jf piperika build # or just 'jf piperika b'
+```
+
 It will: 
 1. Validate that your git branch is ready to run.
 2. Trigger a run if needed.
@@ -63,6 +73,15 @@ Output example for a successful Pipelines run:
 Output example for a Pipelines run that had a unit test failure:
 
 <img src="assets/output_test_failure.png" alt="drawing"/>
+
+#### Link
+```shell
+$ jf piperika link # or just 'jf piperika l'
+```
+Give you quick access to your Pipelines pipe.
+It will provide you with a direct link to your specific Pipelines build.
+<img src="assets/output_link.png" alt="drawing"/>
+
 
 ## Release Notes
 The release notes are available [here](RELEASE.md).

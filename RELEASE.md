@@ -1,3 +1,17 @@
+## 2.1.2 (May 15, 2022)
+- Fixing the plugin version and updating the README.md
+
+## 2.1.1 (May 15, 2022)
+- Improving "report" projects support
+
+## 2.1.0 (May 14, 2022)
+- Adding Projects support for Pipelines links.
+- Aligning the report ability to fit the current code.
+
+## 2.0.0 (May 12, 2022)
+- Support for Git Worktree
+- Support local configuration files
+
 ## 1.0.2 (January 30, 2022)
 - Version fixes
 
