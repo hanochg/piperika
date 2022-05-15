@@ -1,6 +1,6 @@
 module github.com/hanochg/piperika
 
-go 1.18
+go 1.16
 
 require (
 	github.com/buger/goterm v1.0.4
