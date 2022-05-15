@@ -19,13 +19,13 @@ type Configurations struct {
 }
 
 type Reports struct {
-	PipesNames                  []string `json:"report_names,omitempty"`
-	PostReleasePipeSuffix       string   `json:"post_release_pipe_suffix,omitempty"`
-	BuildPipeSuffix             string   `json:"build_pipe_suffix,omitempty"`
-	ReleasePipeSuffix           string   `json:"release_pipe_suffix,omitempty"`
-	VersionSuffix               string   `json:"version_suffix,omitempty"`
-	AdHocReleaseBranchName      string   `json:"adhoc_release_branch_name_message,omitempty"`
-	AdHocReleaseBranchLinksStep string   `json:"adhoc_release_links_step,omitempty"`
+	ServicesNameAndProject      map[string]string `json:"services_name_and_project,omitempty"`
+	PostReleasePipeSuffix       string            `json:"post_release_pipe_suffix,omitempty"`
+	BuildPipeSuffix             string            `json:"build_pipe_suffix,omitempty"`
+	ReleasePipeSuffix           string            `json:"release_pipe_suffix,omitempty"`
+	VersionSuffix               string            `json:"version_suffix,omitempty"`
+	AdHocReleaseBranchName      string            `json:"adhoc_release_branch_name_message,omitempty"`
+	AdHocReleaseBranchLinksStep string            `json:"adhoc_release_links_step,omitempty"`
 }
 
 func GetConfigurations() (*Configurations, error) {
@@ -49,7 +49,16 @@ func GetConfigurations() (*Configurations, error) {
 		curDir = filepath.Dir(curDir)
 		conf, err = loadConfigFromFolder(curDir, defaultConfig)
 	}
+	if err == nil {
+		return conf, nil
+	}
 
+	// Try fetching the config from the $HOME directory
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	conf, err = loadConfigFromFolder(homeDir, defaultConfig)
 	if err != nil {
 		return nil, err
 	}

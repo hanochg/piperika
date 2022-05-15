@@ -41,7 +41,6 @@ func ReportsGathering(ctx context.Context) error {
 	config := ctx.Value(utils.ConfigCtxKey).(*utils.Configurations)
 	branchName := ctx.Value(utils.BranchName).(string)
 	baseUiUrl := ctx.Value(utils.BaseUiUrl).(string)
-	projectName := ctx.Value(utils.ProjectNameCtxKey).(string)
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 
 	err := validateConfigurations(config)
@@ -49,7 +48,7 @@ func ReportsGathering(ctx context.Context) error {
 		return err
 	}
 
-	reportsToPrint := buildServicesReportStructs(httpClient, baseUiUrl, branchName, projectName, config)
+	reportsToPrint := buildServicesReportStructs(httpClient, baseUiUrl, branchName, config)
 	wg := sync.WaitGroup{}
 	mutex := sync.Mutex{}
 	for i := 0; i < len(reportsToPrint); i++ {
@@ -74,7 +73,7 @@ func ReportsGathering(ctx context.Context) error {
 }
 
 func validateConfigurations(config *utils.Configurations) error {
-	if config.Reports == nil || len(config.Reports.PipesNames) == 0 ||
+	if config.Reports == nil || len(config.Reports.ServicesNameAndProject) == 0 ||
 		config.Reports.VersionSuffix == "" || config.Reports.BuildPipeSuffix == "" ||
 		config.Reports.PostReleasePipeSuffix == "" || config.Reports.ReleasePipeSuffix == "" ||
 		config.Reports.AdHocReleaseBranchName == "" || config.Reports.AdHocReleaseBranchLinksStep == "" {
@@ -83,16 +82,16 @@ func validateConfigurations(config *utils.Configurations) error {
 	return nil
 }
 
-func buildServicesReportStructs(httpClient http.PipelineHttpClient, baseUrl string, branch string, projectName string, config *utils.Configurations) []*ServiceReport {
+func buildServicesReportStructs(httpClient http.PipelineHttpClient, baseUrl string, branch string, config *utils.Configurations) []*ServiceReport {
 	var rep []*ServiceReport
-	for _, curPipeName := range config.Reports.PipesNames {
+	for curPipeName, curPipeProjectName := range config.Reports.ServicesNameAndProject {
 		el := &ServiceReport{
 			httpClient:      httpClient,
 			BaseUrl:         baseUrl,
 			config:          config.Reports,
 			milestoneBranch: branch,
 			serviceName:     curPipeName,
-			projectName:     projectName,
+			projectName:     curPipeProjectName,
 		}
 		rep = append(rep, el)
 	}

@@ -1,0 +1,17 @@
+{
+  "pipeline_name": "pipelines_name",
+  "default_step": "pipelines_name_step",
+  "pipelines_source_id": 123,
+  "reports": {
+    "services_name_and_project": {
+      "first_service": "project_name",
+      "second_service": "project_name"
+    },
+    "post_release_pipe_suffix": "_post_release",
+    "build_pipe_suffix": "_build",
+    "release_pipe_suffix": "_release",
+    "version_suffix": "_VERSION",
+    "adhoc_release_branch_name_message": "AD_HOC_RELEASE",
+    "adhoc_release_links_step": "release_links"
+  }
+}

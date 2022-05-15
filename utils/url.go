@@ -30,7 +30,7 @@ func GetProjectNameForSource(httpClient http.PipelineHttpClient, pipelinesSource
 		ProjectId: curProjectId,
 	})
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	return projResp.Name, nil
 }
