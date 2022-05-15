@@ -3,7 +3,7 @@
   "default_step": "pipelines_name_step",
   "pipelines_source_id": 123,
   "reports": {
-    "services_name_and_project": {
+    "services": {
       "first_service": "project_name",
       "second_service": "project_name"
     },
