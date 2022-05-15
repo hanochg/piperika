@@ -50,7 +50,7 @@ If you set your JFrog CLI with Username/Password, you will need to create a new 
 2. Create a new [JFrog CLI profile](https://jfrog.com/knowledge-base/how-to-configure-jfrog-cli-to-work-with-artifactory-video/), and when asked for Access Token, use the generated identity token above.</br>
 You can also create a new JFrog CLI profile via command line:
 ```shell
-$ jf c add pipr-profile --url='https://myarti.com' --interactive=false --access-token 'your-identity-token'
+$ jf c add pipr-profile --url='https://myarti.com' --interactive=false --access-token='your-identity-token'
 $ jf c use pipr-profile
 ```
 
