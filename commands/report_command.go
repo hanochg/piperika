@@ -71,12 +71,14 @@ func selectReportToPrint(c *components.Context) []report.Report {
 
 func infraServicesMilestoneReport(httpClient http.PipelineHttpClient, baseUrl string, branch string) []report.Report {
 	var rep []report.Report
-	for i := 0; i < len(utils.InfraReportServices); i++ {
+
+	for service, project := range utils.InfraReportServiceProject {
 		el := &report.ServiceReport{
 			HttpClient:      httpClient,
 			BaseUrl:         baseUrl,
 			MilestoneBranch: branch,
-			ServiceName:     utils.InfraReportServices[i],
+			ServiceName:     service,
+			ProjectName:     project,
 		}
 		rep = append(rep, el)
 	}

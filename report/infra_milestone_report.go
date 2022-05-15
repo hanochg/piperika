@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/utils"
+	"strconv"
+	"sync"
 	"time"
 )
 
 type ServiceReport struct {
 	HttpClient             http.PipelineHttpClient
 	ServiceName            string
+	ProjectName            string
+	ProjectID              int
 	BaseUrl                string
 	MilestoneBranch        string
 	ReleasePipeline        PipelineResult
@@ -28,12 +32,22 @@ type PipelineResult struct {
 	EndTime     string
 	Status      string
 	TriggeredBy string
+	TriggeredAt string
+	ProjectId   int
+	ProjectName string
 }
 
+var (
+	projectIdsNames = sync.Map{}
+)
+
 func (sr *ServiceReport) fetchReport() {
-	if sr.HttpClient == nil || sr.ServiceName == "" || sr.BaseUrl == "" || sr.MilestoneBranch == "" {
+	if sr.HttpClient == nil || sr.ServiceName == "" || sr.BaseUrl == "" || sr.MilestoneBranch == "" || sr.ProjectName == "" {
 		panic("These variables must be initialized: HttpClient, ServiceName, BaseUrl, MilestoneBranch")
 	}
+
+	sr.ProjectID = utils.GetProjectIdByName(sr.HttpClient, sr.ProjectName)
+	projectIdsNames.Store(sr.ProjectID, sr.ProjectName)
 	sr.getReleasePipelineReport()
 	if sr.ReleasePipeline.LatestRunId > 0 {
 		sr.AdHocReleaseBranchName, sr.ServiceVersion = utils.GetMilestoneBranchAndVersion(sr.HttpClient, sr.ReleasePipeline.LatestRunId)
@@ -47,36 +61,42 @@ func (sr *ServiceReport) toString() string {
 }
 
 func (sr *ServiceReport) getReleasePipelineReport() {
-	getPipelineReport(sr.HttpClient, sr.ServiceName, utils.InfraReportReleasePipeSuffix, sr.MilestoneBranch, &sr.ReleasePipeline)
-	sr.ReleasePipeline.PipeUrl = getPipelineUrl(sr.BaseUrl, sr.ServiceName+utils.InfraReportReleasePipeSuffix, sr.MilestoneBranch)
+	getPipelineReport(sr.HttpClient, sr.ServiceName, utils.InfraReportReleasePipeSuffix, sr.MilestoneBranch, &sr.ReleasePipeline, sr.ProjectID)
+	sr.ReleasePipeline.PipeUrl = getPipelineUrl(sr.BaseUrl, sr.ServiceName+utils.InfraReportReleasePipeSuffix, sr.MilestoneBranch, sr.ProjectName)
 }
 
 func (sr *ServiceReport) getBuildPipelineReport() {
-	getPipelineReport(sr.HttpClient, sr.ServiceName, utils.InfraReportBuildPipeSuffix, sr.AdHocReleaseBranchName, &sr.BuildPipeline)
-	sr.BuildPipeline.PipeUrl = getPipelineUrl(sr.BaseUrl, sr.ServiceName+utils.InfraReportBuildPipeSuffix, sr.AdHocReleaseBranchName)
+	getPipelineReport(sr.HttpClient, sr.ServiceName, utils.InfraReportBuildPipeSuffix, sr.AdHocReleaseBranchName, &sr.BuildPipeline, sr.ProjectID)
+	sr.BuildPipeline.PipeUrl = getPipelineUrl(sr.BaseUrl, sr.ServiceName+utils.InfraReportBuildPipeSuffix, sr.AdHocReleaseBranchName, sr.ProjectName)
 }
 
 func (sr *ServiceReport) getPostReleasePipeline() {
-	getPipelineReport(sr.HttpClient, sr.ServiceName, utils.InfraReportPostReleasePipeSuffix, sr.AdHocReleaseBranchName, &sr.PostReleasePipeline)
-	sr.PostReleasePipeline.PipeUrl = getPipelineUrl(sr.BaseUrl, sr.ServiceName+utils.InfraReportPostReleasePipeSuffix, sr.AdHocReleaseBranchName)
+	getPipelineReport(sr.HttpClient, sr.ServiceName, utils.InfraReportPostReleasePipeSuffix, sr.AdHocReleaseBranchName, &sr.PostReleasePipeline, sr.ProjectID)
+	sr.PostReleasePipeline.PipeUrl = getPipelineUrl(sr.BaseUrl, sr.ServiceName+utils.InfraReportPostReleasePipeSuffix, sr.AdHocReleaseBranchName, sr.ProjectName)
 }
 
-func getPipelineReport(httpClient http.PipelineHttpClient, serviceName string, suffix string, branch string, result *PipelineResult) {
+func getPipelineReport(httpClient http.PipelineHttpClient, serviceName string, suffix string, branch string, result *PipelineResult, projectId int) {
 	result.Branch = branch
 	result.Name = serviceName + suffix
 	if branch != "" {
-		result.LatestRunId = utils.GetLatestRunId(httpClient, serviceName, suffix, branch)
+		result.LatestRunId = utils.GetLatestRunId(httpClient, serviceName, suffix, branch, strconv.Itoa(projectId))
 	}
 	if result.LatestRunId > 0 {
-		result.Status, result.StartTime, result.EndTime, result.TriggeredBy = utils.GetRunDetails(httpClient, result.LatestRunId)
+		runDetails := utils.GetRunDetails(httpClient, result.LatestRunId)
+		result.Status = runDetails.StatusCodeName
+		result.ProjectId = runDetails.ProjectId
+		result.TriggeredAt = runDetails.TriggeredAt
+		result.TriggeredBy = runDetails.TriggeredBy
+		result.StartTime = runDetails.StartedAt
+		result.EndTime = runDetails.EndedAt
 	}
 }
 
-func getPipelineUrl(uiUrl string, service string, branchName string) string {
+func getPipelineUrl(uiUrl string, service string, branchName string, project string) string {
 	if branchName == "" {
 		return "Pipeline is not created."
 	} else {
-		return fmt.Sprintf("%s ", utils.GetPipelinesBranchURL(uiUrl, service, branchName))
+		return fmt.Sprintf("%s ", utils.GetPipelinesBranchURL(uiUrl, service, branchName, project))
 	}
 }
 
@@ -89,18 +109,18 @@ func (sr ServiceReport) string() string {
 		sr.ServiceName, sr.ServiceVersion, sr.ReleasePipeline.string(), sr.BuildPipeline.string(), sr.PostReleasePipeline.string())
 }
 
-func (pr PipelineResult) string() string {
+func (pr *PipelineResult) string() string {
 	return fmt.Sprintf(
-		"%s %s: Status: %s, TriggeredBy: %s, StartTime: %s, EndTime: %s"+
+		"%s %s%s: Status: %s, TriggeredBy: %s, TriggeredAt: %s, StartTime: %s, EndTime: %s"+
 			"\n%s",
-		statusIcon(pr.Status, pr.StartTime), pr.Name, pr.Status, pr.TriggeredBy, pr.StartTime, pr.EndTime, pr.PipeUrl)
+		pr.statusIcon(), pr.projectNamePrefix(), pr.Name, pr.Status, pr.TriggeredBy, pr.TriggeredAt, pr.StartTime, pr.EndTime, pr.PipeUrl)
 }
 
-func statusIcon(status string, startTime string) string {
-	triggerTime, err := time.Parse(time.RFC3339, startTime)
+func (pr *PipelineResult) statusIcon() string {
+	triggerTime, err := time.Parse(time.RFC3339, pr.TriggeredAt)
 	tonightTime := time.Now().Truncate(24 * time.Hour)
 
-	if status == "Success" && err == nil {
+	if pr.Status == "Success" && err == nil {
 		if triggerTime.After(tonightTime) {
 			return "✅"
 		} else {
@@ -108,5 +128,14 @@ func statusIcon(status string, startTime string) string {
 		}
 	} else {
 		return "❌"
+	}
+}
+
+func (pr *PipelineResult) projectNamePrefix() string {
+	actualProjectName, ok := projectIdsNames.Load(pr.ProjectId)
+	if ok {
+		return fmt.Sprint(actualProjectName) + "/"
+	} else {
+		return ""
 	}
 }

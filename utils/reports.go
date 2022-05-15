@@ -1,33 +1,67 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/http/requests"
+	"github.com/jfrog/jfrog-client-go/utils/log"
 	"strconv"
 	"strings"
 )
 
-func GetLatestRunId(httpClient http.PipelineHttpClient, serviceName string, pipeSuffix string, branch string) (latestRunId int) {
-	if httpClient == nil || serviceName == "" || pipeSuffix == "" || branch == "" {
-		panic("Missing parameters!")
+type RunDetails struct {
+	StatusCodeName string
+	ProjectId      int
+	TriggeredAt    string
+	TriggeredBy    string
+	StartedAt      string
+	EndedAt        string
+}
+
+func GetProjectIdByName(httpClient http.PipelineHttpClient, projectName string) (projectId int) {
+	if projectName == DefaultProject {
+		return DefaultProjectId
 	}
-	pipeResp, err := requests.GetPipelines(httpClient, requests.GetPipelinesOptions{
-		SortBy:     "latestRunId",
-		FilterBy:   branch,
-		Light:      true,
-		Limit:      1,
-		PipesNames: serviceName + pipeSuffix,
+	projectsResponse, err := requests.GetProjects(httpClient, requests.GetProjectsOptions{
+		Names: projectName,
 	})
 	if err != nil {
 		panic(err)
 	}
-	if len(pipeResp.Pipelines) > 0 {
+	if len(projectsResponse.Projects) == 1 {
+		return projectsResponse.Projects[0].ProjectIds
+	} else {
+		panic(fmt.Sprintf("Project '%s' not found.", projectName))
+	}
+}
+
+func GetLatestRunId(httpClient http.PipelineHttpClient, serviceName string, pipeSuffix string, branch string, projectIds string) (latestRunId int) {
+	if httpClient == nil || serviceName == "" || pipeSuffix == "" || branch == "" || projectIds == "" {
+		panic("Missing parameters!")
+	}
+	pipeResp, err := requests.GetPipelines(httpClient, requests.GetPipelinesOptions{
+		SortBy:                 "latestRunId",
+		PipelineSourceBranches: branch,
+		ProjectIds:             projectIds,
+		Light:                  true,
+		Limit:                  5,
+		SortOrder:              -1,
+		PipesNames:             serviceName + pipeSuffix,
+	})
+	if err != nil {
+		panic(err)
+	}
+	responseLength := len(pipeResp.Pipelines)
+	if responseLength < 2 {
 		latestRunId = pipeResp.Pipelines[0].LatestRunId
+	} else {
+		log.Error(fmt.Sprintf("GetLatestRunId must return exactly one pipelineId, but you've got at least %d pipelines. "+
+			"Check you query!!!\nQuery response: %v", responseLength, pipeResp))
 	}
 	return
 }
 
-func GetRunDetails(httpClient http.PipelineHttpClient, latestRunId int) (statusCode string, startedAt string, endedAt string, triggeredBy string) {
+func GetRunDetails(httpClient http.PipelineHttpClient, latestRunId int) (run RunDetails) {
 	if httpClient == nil || latestRunId < 1 {
 		panic("Missing parameters!")
 	}
@@ -43,16 +77,20 @@ func GetRunDetails(httpClient http.PipelineHttpClient, latestRunId int) (statusC
 		panic("Unexpected result!")
 	}
 
+	run = RunDetails{}
 	if len(runDetails.Runs) == 1 {
 		if runDetails.Runs[0].StaticPropertyBag.TriggeredByUserName != "" {
-			triggeredBy = runDetails.Runs[0].StaticPropertyBag.TriggeredByUserName
+			run.TriggeredBy = runDetails.Runs[0].StaticPropertyBag.TriggeredByUserName
 		} else {
-			triggeredBy = runDetails.Runs[0].StaticPropertyBag.TriggeredByResourceName
+			run.TriggeredBy = runDetails.Runs[0].StaticPropertyBag.TriggeredByResourceName
 		}
-		return runDetails.Runs[0].StatusCode.StatusCodeName(), runDetails.Runs[0].StartedAt, runDetails.Runs[0].EndedAt, triggeredBy
-	} else {
-		return
+		run.StatusCodeName = runDetails.Runs[0].StatusCode.StatusCodeName()
+		run.ProjectId = runDetails.Runs[0].ProjectId
+		run.TriggeredAt = runDetails.Runs[0].TriggeredAt
+		run.StartedAt = runDetails.Runs[0].StartedAt
+		run.EndedAt = runDetails.Runs[0].EndedAt
 	}
+	return
 }
 
 func GetMilestoneBranchAndVersion(httpClient http.PipelineHttpClient, latestRunId int) (adHocReleaseBranchName string, serviceVersion string) {

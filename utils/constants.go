@@ -7,6 +7,8 @@ const (
 	BranchName                           = "branchName"
 	ConfigCtxKey                         = "configurations"
 	ForceFlag                            = "forceFlag"
+	DefaultProject                       = "default"
+	DefaultProjectId                     = 1
 	InfraReportLinksStep                 = "release_process_links"
 	InfraReportEnvVersionSuffix          = "_VERSION"
 	InfraReportEnvAdHocReleaseBranchName = "AD_HOC_RELEASE_BRANCH_NAME"
@@ -15,4 +17,12 @@ const (
 	InfraReportPostReleasePipeSuffix     = "_post_release"
 )
 
-var InfraReportServices = [...]string{"access", "metadata", "event", "router", "jfconnect", "mission_control", "integration"}
+var InfraReportServiceProject = map[string]string{
+	"access":          "Access",
+	"metadata":        DefaultProject,
+	"event":           DefaultProject,
+	"router":          DefaultProject,
+	"jfconnect":       DefaultProject,
+	"mission_control": DefaultProject,
+	"integration":     DefaultProject,
+}

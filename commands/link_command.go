@@ -33,6 +33,6 @@ func getPipelinesLink(c *components.Context) error {
 		return err
 	}
 	link := fmt.Sprintf("%s ",
-		utils.GetPipelinesBranchURL(uiUrl, dirConfig.PipelineName, branchName))
+		utils.GetPipelinesBranchURL(uiUrl, dirConfig.PipelineName, branchName, utils.DefaultProject))
 	return terminal.DoneMessage("Link", "", link)
 }

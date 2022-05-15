@@ -18,6 +18,7 @@ type GetRunsOptions struct {
 	SortOrder   int    `url:"sortOrder,omitempty"`   //Optional. 1 for ascending and -1 for descending based on sortBy
 	RunNumbers  string `url:"sortOrder,omitempty"`
 	RunIds      string `url:"runIds,omitempty"`
+	ProjectIds  string `url:"projectIds,omitempty"`
 }
 
 type Run struct {
@@ -28,7 +29,9 @@ type Run struct {
 	StatusCode        http.StatusCode   `json:"statusCode"`
 	StartedAt         string            `json:"startedAt"`
 	EndedAt           string            `json:"endedAt"`
+	TriggeredAt       string            `json:"createdAt"`
 	StaticPropertyBag StaticPropertyBag `json:"staticPropertyBag"`
+	ProjectId         int               `json:"projectId"`
 }
 
 type StaticPropertyBag struct {

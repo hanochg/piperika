@@ -35,6 +35,6 @@ func GetPipelinesRunURL(uiBaseUrl string, pipelineName string, step string, runN
 	return goterm.Color(fmt.Sprintf("%s/myPipelines/default/%s/%d/%s?branch=%v", uiBaseUrl, pipelineName, runNumber, step, url.PathEscape(gitBranch)), goterm.BLUE)
 }
 
-func GetPipelinesBranchURL(uiBaseUrl string, pipelineName string, gitBranch string) string {
-	return goterm.Color(fmt.Sprintf("%s/myPipelines/default/%s?branch=%v", uiBaseUrl, pipelineName, url.PathEscape(gitBranch)), goterm.BLUE)
+func GetPipelinesBranchURL(uiBaseUrl string, pipelineName string, gitBranch string, project string) string {
+	return goterm.Color(fmt.Sprintf("%s/myPipelines/%s/%s?branch=%v", uiBaseUrl, project, pipelineName, url.PathEscape(gitBranch)), goterm.BLUE)
 }

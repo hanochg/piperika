@@ -17,6 +17,7 @@ type GetPipelinesOptions struct {
 	Limit                  int    `url:"limit,omitempty"`
 	PipesNames             string `url:"names,omitempty"`
 	PipelineSourceBranches string `url:"pipelineSourceBranches,omitempty"`
+	ProjectIds             string `url:"projectIds,omitempty"`
 }
 
 type Pipeline struct {
