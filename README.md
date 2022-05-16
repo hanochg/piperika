@@ -82,9 +82,35 @@ Give you quick access to your Pipelines pipe.
 It will provide you with a direct link to your specific Pipelines build.
 <img src="assets/output_link.png" alt="drawing"/>
 
+## Configurations Files
+Piperika uses a configuration file named `.pipr`.</br>
+The configuration file should be placed in the Git repository.
+If the configuration file is not present, Piperika will look for the configuration then it will look for it in the parent directories until it will reach the root of the repository.</br>
+If the configuration file is still missing, Piperika will look for it in the $HOME directory.
+</br>
+For example:</br>
+My Pipelines configuration is placed under the repo root path - `/home/user/sources/myProject/.pipr`.</br>
+If I will run Piprika from the folder `/home/user/sources/myProject/otherFolder`, Piperika will take the configuration from `/home/user/sources/myProject/.pipr`.</br> 
+If my repo doesn't include a `.pipr` at all, it will try to fetch it from my $HOME dir - `/home/user/.pipr`.</br>
+
+### Configuration Structure
+The configuration file contains a JSON, you can see an example for it in [pipr_config.example](pipr_config.example). 
+The fields in the configurations are:
+- **pipeline_name** - The name of your Pipeline.
+- **default_step** - The step to run on your Pipeline when triggering a run.
+- **pipelines_source_id** - The Pipelines source Id of your repository (can be found via Pipelines API - [Get Sources](https://www.jfrog.com/confluence/display/JFROG/Pipelines+REST+API#PipelinesRESTAPI-GetallPipelineSources))
 
 ## Release Notes
 The release notes are available [here](RELEASE.md).
+
+## Versioning
+When bumping the version, you must do the following:
+1. Update the RELEASE.md file with the new version and the release notes.
+2. Change the plugin version in the file 'main.go'.
+3. Commit and push your changes.
+4. Git tag the new version: </br> 
+`git tag -a v2.1.2  -m "v2.1.2"` 
+`git push origin --tags` 
 
 ## Owners
 Hanoch Giner</br>

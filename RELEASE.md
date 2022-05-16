@@ -1,3 +1,6 @@
+## 2.1.3 (May 16, 2022)
+- Fixing versioning issues
+
 ## 2.1.2 (May 15, 2022)
 - Fixing the plugin version and updating the README.md
 

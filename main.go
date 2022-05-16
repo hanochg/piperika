@@ -14,7 +14,7 @@ func getApp() components.App {
 	app := components.App{}
 	app.Name = "piperika"
 	app.Description = "JFrog Pipelines in a simple command"
-	app.Version = "v1.0.2"
+	app.Version = "v2.1.3"
 	app.Commands = getCommands()
 	return app
 }
