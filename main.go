@@ -24,5 +24,6 @@ func getCommands() []components.Command {
 		commands.GetCommand(),
 		commands.GetLinkCommand(),
 		commands.PrintReport(),
+		commands.GetWaitSyncCommand(),
 	}
 }
