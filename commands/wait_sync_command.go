@@ -38,7 +38,7 @@ func waitSync(c *components.Context) error {
 		return err
 	}
 
-	timeout := time.Minute * 2  // TODO: make as flag
+	timeout := time.Minute * 5  // TODO: make as flag
 	interval := time.Second * 3 // TODO: make as flag
 
 	timeoutTimer := time.NewTimer(timeout)
