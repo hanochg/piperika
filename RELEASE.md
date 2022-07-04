@@ -1,3 +1,6 @@
+## 2.1.4 (Jul 4, 2022)
+- Adding "wait-sync" command
+
 ## 2.1.3 (May 16, 2022)
 - Fixing versioning issues
 

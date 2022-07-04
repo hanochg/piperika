@@ -82,6 +82,13 @@ Give you quick access to your Pipelines pipe.
 It will provide you with a direct link to your specific Pipelines build.
 <img src="assets/output_link.png" alt="drawing"/>
 
+#### Wait for sync
+```shell
+$ jf piperika wait-sync # or just 'jf piperika ws'
+```
+Wait for Pipelines pipe to sync.
+The command will end when the sync is done or fail.
+
 ## Configurations Files
 Piperika uses a configuration file named `.pipr`.</br>
 The configuration file should be placed in the Git repository.
