@@ -1,3 +1,6 @@
+## 2.1.5 (Jul 28, 2022)
+- Updating dependencies + supporting Mac M1
+
 ## 2.1.4 (Jul 4, 2022)
 - Adding "wait-sync" command
 

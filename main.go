@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/hanochg/piperika/commands"
-	"github.com/jfrog/jfrog-cli-core/plugins"
-	"github.com/jfrog/jfrog-cli-core/plugins/components"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins/components"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func getApp() components.App {
 	app := components.App{}
 	app.Name = "piperika"
 	app.Description = "JFrog Pipelines in a simple command"
-	app.Version = "v2.1.4"
+	app.Version = "v2.1.5"
 	app.Commands = getCommands()
 	return app
 }

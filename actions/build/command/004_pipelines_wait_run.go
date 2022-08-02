@@ -20,7 +20,7 @@ func (c *_004) ResolveState(ctx context.Context, state *PipedCommandState) Statu
 	httpClient := ctx.Value(utils.HttpClientCtxKey).(http.PipelineHttpClient)
 	stepsResp, err := requests.GetSteps(httpClient, requests.GetStepsOptions{
 		RunIds: strconv.Itoa(state.RunId),
-		Limit:  100,
+		Limit:  50,
 	})
 	if err != nil {
 		return Status{

@@ -2,6 +2,7 @@ package requests
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/hanochg/piperika/http"
 )
 
@@ -28,8 +29,9 @@ type ConfigPropertyBag struct {
 }
 
 type EnvironmentVariable struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key      string          `json:"key,omitempty"`
+	ValueRaw json.RawMessage `json:"value,omitempty"`
+	Value    string
 }
 
 type StepsResponse struct {
@@ -43,5 +45,13 @@ func GetSteps(client http.PipelineHttpClient, options GetStepsOptions) (*StepsRe
 	}
 	res := &StepsResponse{}
 	err = json.Unmarshal(body, &res.Steps)
+
+	// EnvironmentVariable value might be 'int' and not 'string', so we will align it to be string
+	for _, step := range res.Steps {
+		for _, envVar := range step.ConfigPropertyBag.EnvironmentVariables {
+			envVar.Value = fmt.Sprintf("%v", envVar.ValueRaw)
+		}
+	}
+
 	return res, err
 }

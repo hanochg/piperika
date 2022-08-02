@@ -32,8 +32,8 @@ run:				## Run the plugin (example: ARGS="pp everything" make run)
 # PLUGIN INSTALLATION
 
 install: clean build			## Install the plugin to jfrog cli
-	mkdir -p ${HOME}/.jfrog/plugins
-	\cp bin/piperika ${HOME}/.jfrog/plugins
+	mkdir -p ${HOME}/.jfrog/plugins/piperika/bin
+	\cp bin/piperika ${HOME}/.jfrog/plugins/piperika/bin
 
 uninstall:			## Uninstall the plugin to jfrog cli
 	rm -f ${HOME}/.jfrog/plugins/piperika

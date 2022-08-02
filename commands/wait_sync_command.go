@@ -5,7 +5,7 @@ import (
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/http/requests"
 	"github.com/hanochg/piperika/utils"
-	"github.com/jfrog/jfrog-cli-core/plugins/components"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins/components"
 	"time"
 )
 

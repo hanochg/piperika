@@ -5,8 +5,8 @@ import (
 	"github.com/buger/goterm"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/http/requests"
-	"github.com/jfrog/jfrog-cli-core/plugins"
-	"github.com/jfrog/jfrog-cli-core/plugins/components"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins/components"
 	"net/url"
 )
 
