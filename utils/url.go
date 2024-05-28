@@ -5,7 +5,7 @@ import (
 	"github.com/buger/goterm"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/http/requests"
-	"github.com/jfrog/jfrog-cli-core/v2/plugins"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins/common"
 	"github.com/jfrog/jfrog-cli-core/v2/plugins/components"
 	"net/url"
 )
@@ -36,7 +36,7 @@ func GetProjectNameForSource(httpClient http.PipelineHttpClient, pipelinesSource
 }
 
 func GetUIBaseUrl(c *components.Context) (string, error) {
-	details, err := plugins.GetServerDetails(c)
+	details, err := common.GetServerDetails(c)
 	if err != nil {
 		return "", err
 	}

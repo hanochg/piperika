@@ -6,7 +6,7 @@ import (
 	"github.com/hanochg/piperika/actions/build"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/utils"
-	"github.com/jfrog/jfrog-cli-core/v2/plugins"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins/common"
 	"github.com/jfrog/jfrog-cli-core/v2/plugins/components"
 	"time"
 )
@@ -28,14 +28,18 @@ func getArguments() []components.Argument {
 
 func getFlags() []components.Flag {
 	return []components.Flag{
-		plugins.GetServerIdFlag(),
+		common.GetServerIdFlag(),
 		components.StringFlag{
-			Name:        "branch",
-			Description: "Specify the branch to build",
+			BaseFlag: components.BaseFlag{
+				Name:        "branch",
+				Description: "Specify the branch to build",
+			},
 		},
 		components.BoolFlag{
-			Name:        "force",
-			Description: "Force trigger if there is no processing runs",
+			BaseFlag: components.BaseFlag{
+				Name:        "force",
+				Description: "Force trigger if there is no processing runs",
+			},
 		},
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/hanochg/piperika/actions/report"
 	"github.com/hanochg/piperika/http"
 	"github.com/hanochg/piperika/utils"
-	"github.com/jfrog/jfrog-cli-core/v2/plugins"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins/common"
 	"github.com/jfrog/jfrog-cli-core/v2/plugins/components"
 	"time"
 )
@@ -23,10 +23,12 @@ func PrintReport() components.Command {
 
 func getReportsFlags() []components.Flag {
 	return []components.Flag{
-		plugins.GetServerIdFlag(),
+		common.GetServerIdFlag(),
 		components.StringFlag{
-			Name:         "branch",
-			Description:  "The relevant Git branch for the reports",
+			BaseFlag: components.BaseFlag{
+				Name:        "branch",
+				Description: "The relevant Git branch for the reports",
+			},
 			DefaultValue: "master",
 		},
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/google/go-querystring/query"
 	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils"
-	"github.com/jfrog/jfrog-cli-core/v2/plugins"
+	"github.com/jfrog/jfrog-cli-core/v2/plugins/common"
 	"github.com/jfrog/jfrog-cli-core/v2/plugins/components"
 	"github.com/jfrog/jfrog-cli-core/v2/utils/config"
 	"github.com/jfrog/jfrog-client-go/http/jfroghttpclient"
@@ -27,7 +27,7 @@ type PipelineHttpClient interface {
 }
 
 func NewPipelineHttp(c *components.Context) (*pipelineHttpClient, error) {
-	details, err := plugins.GetServerDetails(c)
+	details, err := common.GetServerDetails(c)
 	if err != nil {
 		return nil, err
 	}

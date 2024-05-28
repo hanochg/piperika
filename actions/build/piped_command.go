@@ -3,7 +3,7 @@ package build
 import (
 	"context"
 	"fmt"
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/hanochg/piperika/actions/build/command"
 	"github.com/hanochg/piperika/terminal"
 	"github.com/pkg/errors"
